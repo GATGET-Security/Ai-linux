@@ -1,14 +1,14 @@
 # Linux Kernel and Low-Level OS Optimization for Local AI Workloads
 
-> Status: Phase 0 research · Last updated: 2026-11-26 · Evidence grading: see 00-method.md
+> Status: Phase 0 research, corrected in Phase 0.1 review (see `08-architecture-review.md`, IDs V-*) · Last updated: 2026-11-26 · Evidence grading: see 00-method.md
 
 ## Summary
 
 - **Kernel baseline.** Mainline is at 7.4-rc4 [K-01]. 7.3 is the newest stable series (released about 2026-10-18; 7.3.5 is current) [K-02][K-03]. 6.18 is the newest long-term kernel and 6.12 LTS is still maintained [K-03][K-04]. Some production `scx` schedulers need ≥ 6.16 [K-14], and several features below arrived in 7.x. AI Linux should therefore follow a recent stable kernel and not stay on 6.12.
 - **Cache-aware load balancing (`CONFIG_SCHED_CACHE`) landed in 7.2 and defaults to on for every multi-LLC CPU** [K-19][K-20][K-21]. It pulls a process's threads into one LLC (one CCD on Ryzen). On single-node desktops the footprint check is skipped, so only the thread count limits it [K-20]. Nobody has measured it on AI workloads. This may be the most consequential untested default for multi-CCD CPU inference (H-K-01).
-- **sched_ext is mature enough to ship as opt-in.** It can be attached and detached at runtime. If it fails, the kernel aborts it and moves tasks back to the fair class (error, SysRq-S, or a runnable task starved for up to 30 s) [K-08][K-09]. Since 7.3, cgroup **sub-schedulers** allow per-workload policies [K-09][K-17]. `scx_layered`, `scx_lavd` and `scx_rusty` call themselves production-ready [K-12][K-13][K-16]. `scx_cosmos --gpu` already places NVIDIA GPU processes near their GPU [K-15]. Meta runs `scx_layered` on a GPU training fleet [K-18].
+- **sched_ext is mature enough to ship as opt-in.** It can be attached and detached at runtime. If it fails, the kernel aborts it and moves tasks back to the fair class (error, SysRq-S, or a runnable task starved for up to 30 s) [K-08][K-09]. cgroup **sub-schedulers** allow per-workload policies: `CONFIG_EXT_SUB_SCHED` first appears in v7.1 (source-verified in the Phase 0.1 review [V-03]); press reports call the work feature-complete in 7.3 [K-09][K-17]. `scx_layered`, `scx_lavd` and `scx_rusty` call themselves production-ready [K-12][K-13][K-16]. `scx_cosmos --gpu` already places NVIDIA GPU processes near their GPU [K-15]. Meta runs `scx_layered` on a GPU training fleet [K-18].
 - **Preemption.** Since 2026-01 the build options on x86 are only `PREEMPT`, `PREEMPT_LAZY` (the default) and `PREEMPT_RT`. `PREEMPT_NONE` and `PREEMPT_VOLUNTARY` are now limited to other architectures [K-05][K-06]. PREEMPT_LAZY is the sensible default. Nothing shows that PREEMPT_RT helps AI throughput.
-- **The GPU-side kernel interfaces are fragmented.** The `dmem` cgroup controller caps device memory per region; the docs use xe as the example [K-28]. Reclaim for dmem is still under review [K-47]. drm_sched now has an experimental FAIR policy, but FIFO is the default [K-48]. The NVIDIA stack (open modules 620.x, Turing+) is out of tree [K-38]. Nova is still "work in progress and may not be functional" [K-44][K-45].
+- **The GPU-side kernel interfaces are fragmented.** The `dmem` cgroup controller caps device memory per region; the docs use xe as the example [K-28]. Reclaim for dmem (`ops->reclaim`, invoked when `dmem.max` is lowered) is in mainline since v7.3 (source-verified [V-05]); amdgpu, xe and nouveau register dmem regions via TTM/DRM [V-05]. drm_sched now has an experimental FAIR policy, but FIFO is the default [K-48]. The NVIDIA stack (open modules 620.x, Turing+) is out of tree [K-38]. Nova is still "work in progress and may not be functional" [K-44][K-45].
 - **Memory.** Per-size mTHP controls, 1 GiB hugetlbfs, MGLRU thrash protection (`min_ttl_ms`), zswap, DAMON actions (`hugepage`, `collapse`, `migrate_hot/cold`) and weighted interleave all exist in mainline [K-29][K-32][K-33][K-34][K-35][K-36]. HMM-based shared virtual memory is available for NVIDIA (UVM, open modules) and AMD (KFD SVM) [K-37][K-38][K-39]. All of these are tuning and policy jobs. None needs new kernel code.
 - **Security boundaries are concrete.** x86 already defaults to lazy IOMMU invalidation [K-41]. Attack-vector controls (since about 6.17) let us turn off only mitigations that cannot apply, for example guest-to-host on a machine with no VMs [K-56]. Under Secure Boot lockdown (integrity mode), writable debugfs knobs such as `sched/llc_balancing/*` and MSR writes are blocked [K-61]. Tuning must therefore go through sysfs, sysctl and cgroup interfaces.
 - **Kernel build optimizations probably add little.** AutoFDO and Propeller are in mainline. The authors claim low single-digit gains on server and network benchmarks [K-52][K-53]. The kernel is built with `-mno-sse -mno-avx` [K-54], so x86-64-v3/v4 targets barely affect kernel code. No evidence exists for GPU-bound AI workloads.
@@ -33,7 +33,7 @@ No experiments were run (see 00-method.md). Version facts were checked against t
 - *Safety model.* A BPF scheduler can be turned on and off at any time. Any error, the program exiting, SysRq-S, or a stalled runnable task aborts it, and all tasks return to the fair class [K-08].
 - *Watchdog.* `timeout_ms` is the longest a runnable task may wait. It defaults to 30 s, which is also the maximum [K-09].
 - *Partial switching.* With `SCX_OPS_SWITCH_PARTIAL`, only tasks that use the `SCHED_EXT` policy go to the BPF scheduler [K-08].
-- *Sub-schedulers.* A scheduler can be attached to a cgroup (`sub_cgroup_id`) [K-09]. `CONFIG_EXT_SUB_SCHED` defaults to y [K-19]. Press reports call the work "feature complete" in 7.3 [K-17]. 7.3 also reportedly added a `cgroup_mode` for CPU-weight distribution [K-60] (not verified against source).
+- *Sub-schedulers.* A scheduler can be attached to a cgroup (`sub_cgroup_id`) [K-09]. `CONFIG_EXT_SUB_SCHED` defaults to y [K-19] and exists since v7.1 [V-03]. Press reports call the work "feature complete" in 7.3 [K-17]. 7.3 also reportedly added a `cgroup_mode` for CPU-weight distribution [K-60] (not verified against source).
 - *Kernel requirements.* `CONFIG_SCHED_CLASS_EXT` needs BPF_SYSCALL, BPF_JIT and DEBUG_INFO_BTF [K-05]. sched_ext has been upstream since 6.12 [K-10].
 
 **1.3 scx schedulers (checked against the tree on 2026-11-26) [userspace].**
@@ -75,10 +75,11 @@ When CPUs are free, any reasonable scheduler does well. The differences show up 
 - *Runtime gate.* It switches on only when the topology has several LLCs. It can be toggled at `/sys/kernel/debug/sched/llc_balancing/enabled`. Other tunables there are `aggr_tolerance`, `imb_pct`, `overaggr_pct` and the epoch settings [K-20].
 - *Heuristics* [K-20]:
   - Aggregation is skipped if the process's sampled footprint exceeds the LLC size times a tolerance. The footprint comes from NUMA-balancing fault statistics, so the check only applies when NUMA balancing is active.
-  - Aggregation is also skipped if the average running threads × SMT width reach about 80 % of the LLC's CPUs.
+  - Aggregation is also skipped if the average running threads × SMT width reach about 80 % of the LLC's CPUs. Concretely on a 7950X3D (16 logical CPUs per CCD, SMT2): aggregation applies only while a process averages **≤ 6 running threads** (6 × 2 = 12 < 12.8); single-threaded processes are never aggregated [V-01].
   - On a **single-node desktop** (NUMA balancing inactive), only the thread-count rule applies.
 - *RDT interaction.* A source comment marks interaction with RDT-reserved cache ways as "TBD" [K-20].
 - *Lockdown.* Because the toggle lives in debugfs, it cannot be written under lockdown in integrity mode [K-61].
+- *Review note (Phase 0.1).* Kconfig presence verified per tag: absent in v7.1, present in v7.2 and v7.3; `sysctl_sched_cache_user = 1` and activation only when `has_multi_llcs` [V-01][V-02]. Aggregation is a load-balancing *preference* within a task's allowed CPUs; explicit CPU affinity/cpusets therefore bound it (reasoning from the scheduler design, not separately verified — see H-K-11).
 
 **1.8 cpufreq and CPU topology hints [kernel].**
 - *amd-pstate modes.* `active` mode (EPP) takes EPP values 0–255 or named profiles. A newer `dynamic` EPP mode follows the platform profile and AC/battery state [K-24]. `passive` and `guided` modes also exist.
@@ -126,7 +127,7 @@ When CPUs are free, any reasonable scheduler does well. The differences show up 
 - **[kernel, out-of-tree] NVIDIA open GPU kernel modules** (620.73.04, Turing or newer, dual MIT/GPL) need matching GSP firmware and the proprietary userspace [K-38]. NVIDIA made the open modules the default from R560 and requires them for Blackwell and Grace Hopper [K-46]. Out-of-tree modules mean DKMS and module signing are needed (§8).
 - **[kernel] drm_sched** has a `sched_policy` module parameter: RR, FIFO (default) or **FAIR (experimental)** [K-48]. This is the first in-kernel move toward fair multi-client GPU job scheduling.
 - **[kernel] dmem cgroup.** `dmem.max`, `dmem.min`, `dmem.low`, `dmem.current` and `dmem.peak` per region, plus `dmem.capacity` at the root. The docs give xe VRAM examples [K-28]. Status:
-  - An LKML series adding **reclaim** to dmem (amdgpu, TTM, xe) reached v6 in 2026-06; merge status unverified [K-47].
+  - An LKML series adding **reclaim** to dmem (amdgpu, TTM, xe) reached v6 in 2026-06 [K-47]; **merged in v7.3** (verified against `kernel/cgroup/dmem.c` at v7.2 vs v7.3 in the Phase 0.1 review [V-05]).
   - NVIDIA's MPS v3 docs (seen only as a search summary) say dmem is used on kernels ≥ 6.14 [K-47]. How NVIDIA integrates with it is unclear.
   - We found no GPU *compute*-time cgroup in mainline.
 
@@ -208,9 +209,9 @@ When CPUs are free, any reasonable scheduler does well. The differences show up 
 ## Hypotheses
 
 **Hypothesis H-K-01: SCHED_CACHE can reduce CPU-inference throughput on multi-CCD desktops.**
-- *Statement:* On single-node multi-CCD CPUs (e.g. 2-CCD Ryzen), cache-aware scheduling can hurt memory-bandwidth-bound token generation when the thread count is below about 80 % of one CCD's CPUs. Packing threads into one CCD limits them to that CCD's fabric bandwidth.
+- *Statement:* On single-node multi-CCD CPUs (e.g. 2-CCD Ryzen), cache-aware scheduling can hurt memory-bandwidth-bound work of processes with **2–6 average running threads** on a 7950X3D (the aggregation window, see 1.7). Packing threads into one CCD limits them to that CCD's fabric read bandwidth (≈64 GB/s theoretical [H-08]). Typical affected processes: CPU-side MoE expert compute with few threads, embedding/ASR servers, multi-process serving workers. Default llama.cpp runs with ≥8 threads are outside the window.
 - *Rationale:* The footprint check is inactive without NUMA balancing [K-20], and LLM weights are far larger than any L3.
-- *Test:* llama.cpp CPU decode at 4–12 threads with `llc_balancing/enabled` = 0 vs 1. Record tokens/s and per-CCD placement (perf sched).
+- *Test:* llama.cpp CPU decode and MoE expert offload at 2, 4, 6, 8 and 12 threads with `llc_balancing/enabled` = 0 vs 1 (kernel ≥ 7.2). Record tokens/s and per-CCD placement (perf sched).
 - *Risk:* If confirmed, the new default silently costs performance. If refuted, a tuning knob can be dropped.
 
 **Hypothesis H-K-02: sched_ext choice matters only under CPU contention.**
@@ -265,7 +266,7 @@ When CPUs are free, any reasonable scheduler does well. The differences show up 
 - *Statement:* sched_ext sub-schedulers plus dmem limits plus drm_sched FAIR can isolate concurrent agents on CPU and GPU using only open components on amdgpu/xe.
 - *Rationale:* The building blocks are in mainline or under review [K-09][K-28][K-47][K-48].
 - *Test:* A prototype with two agents and one interactive session; measure interference.
-- *Risk:* FAIR is experimental, dmem reclaim may not merge, and NVIDIA support is unclear.
+- *Risk:* FAIR is experimental and NVIDIA's out-of-tree driver does not use the in-tree TTM dmem path (no evidence found); dmem reclaim is merged since 7.3 [V-05].
 
 ## Contradictory or weak evidence
 
@@ -282,7 +283,7 @@ When CPUs are free, any reasonable scheduler does well. The differences show up 
 ## Open questions
 
 1. What does `SCHED_CACHE` do to llama.cpp/ggml CPU inference and to multi-process serving (vLLM workers) on 2-CCD Ryzen and Threadripper? Will a non-debugfs knob (sysctl or per-process prctl) be accepted upstream?
-2. Is dmem reclaim merged (7.3 or 7.4)? Do NVIDIA's out-of-tree modules register dmem regions, and with what semantics?
+2. ~~Is dmem reclaim merged?~~ Answered in review: merged in v7.3 [V-05]. Open: do NVIDIA's out-of-tree modules register dmem regions, and with what semantics?
 3. Which kernel will be the 2026 LTS? (kernel.org was unreachable; the last 2026 release is the usual candidate.)
 4. Does the drm_sched FAIR policy affect amdgpu/xe AI throughput or latency? Is there a plan to make it the default?
 5. Under distro Secure Boot (lockdown integrity), which `scx` loaders, bpftrace scripts and power tools still work? Which of them need confidentiality-mode exemptions?

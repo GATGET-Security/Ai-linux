@@ -1,6 +1,6 @@
 # Hypothesis Register
 
-> Status: all **untested** (Phase 0) · Last updated: 2026-11-26 · Full statements, rationale and risks: see the linked research documents · Test references: `docs/architecture/hardware-test-plan.md` (HW-*, E1–E15) and `docs/research/05-base-distributions-and-licensing.md` §1.9 (E-01…E-09)
+> Status: all **untested** (Phase 0, updated by Phase 0.1 review) · Last updated: 2026-11-26 · Full statements, rationale and risks: see the linked research documents · Test references: `docs/architecture/hardware-test-plan.md` (HW-*, E1–E15) and `docs/research/05-base-distributions-and-licensing.md` §1.9 (E-01…E-09)
 
 Priority: **P1** = tested in the first hardware block; **P2** = Phase 2–3;
 **P3** = research track or opportunistic. Status values: `untested`,
@@ -27,6 +27,7 @@ Priority: **P1** = tested in the first hardware block; **P2** = Phase 2–3;
 | [H-R-03](../research/04-runtimes-and-workloads.md) | KLD/flips suffice for weight-quant gating; KV-cache quant needs long-context tests | E9 | P1 | untested |
 | [H-S-07](../research/06-self-optimization-and-benchmarking.md) / [H-H-08](../research/03-hardware-io-and-model-loading.md) | NVML on RTX 4090 samples partially/averages; short-request energy off by >5–10% | HW-1 energy calibration | P1 | untested |
 | [H-S-08](../research/06-self-optimization-and-benchmarking.md) | E-Divisive detects 5% step regressions within 5 points at ≤1 false alarm/metric/quarter | Phase 2 (replayed series) | P2 | untested |
+| [H-S-10](../research/08-architecture-review.md) | Fixed output length reduces run-to-run CoV of throughput metrics substantially vs natural lengths | HW-1 A/A | P1 | untested |
 | [H-H-09](../research/03-hardware-io-and-model-loading.md) | Proxmox default CPU type hides AVX2/AVX-512 → much slower CPU inference than `host` | HW-1 | P1 | untested |
 
 ## CPU, memory and scheduling
@@ -35,11 +36,13 @@ Priority: **P1** = tested in the first hardware block; **P2** = Phase 2–3;
 |----|--------------------|------|------|--------|
 | [H-H-01](../research/03-hardware-io-and-model-loading.md) | CPU-side memory-bound decode on one 7950X3D CCD is capped near the per-CCD fabric limit; spanning both CCDs approaches DRAM limit; V-Cache does not help weight streaming | HW-1 bandwidth, E2 | P1 | untested |
 | [H-K-09](../research/02-kernel-and-os.md) | X3D "cache" mode helps small working sets (tokenizer, small embedders), not >1 GB model decode | E2 | P1 | untested |
-| [H-K-01](../research/02-kernel-and-os.md) | `SCHED_CACHE` (≥7.2) can reduce CPU-inference throughput on multi-CCD desktops | E3 | P1 | untested |
+| [H-K-01](../research/02-kernel-and-os.md) | `SCHED_CACHE` (≥7.2) can reduce throughput of memory-bound processes with 2–6 avg. running threads on a 7950X3D (aggregation window, source-verified [V-01]) | E3 | P1 | untested |
+| [H-K-11](../research/08-architecture-review.md) | Explicit CPU affinity/cpusets bound `SCHED_CACHE` aggregation, giving a lockdown-compatible control | E3 | P1 | untested |
 | [H-H-06](../research/03-hardware-io-and-model-loading.md) | A ~120B MoE with experts in RAM is borderline on 64 GB (faults/RSS pressure in long sessions) | E2 | P1 | untested |
 | [H-H-02](../research/03-hardware-io-and-model-loading.md) | Batch-1: CPU compute of offloaded layers beats PCIe weight streaming; streaming wins at larger batch/prefill | E5 | P1 | untested |
 | [H-K-02](../research/02-kernel-and-os.md) | sched_ext choice matters only under CPU contention | E7 | P2 | untested |
 | [H-K-03](../research/02-kernel-and-os.md) | EEVDF slice hints recover most of any scx benefit | E7 | P2 | untested |
+| [H-R-10](../research/08-architecture-review.md) | Userspace PGO/BOLT builds of CPU inference paths (e.g. llama.cpp CPU backend) give measurable CPU-decode/prefill gains, unlike kernel PGO | E12 (variant) | P2 | untested |
 | [H-S-09](../research/06-self-optimization-and-benchmarking.md) | Latency-oriented sched_ext improves interactive p99 under load, not GPU-bound throughput (>1%) | E7 | P2 | untested |
 | [H-K-05](../research/02-kernel-and-os.md) | DAMON-driven THP collapse raises CPU-inference tokens/s without app changes | E6 | P2 | untested |
 | [H-K-08](../research/02-kernel-and-os.md) | `isolcpus`/`nohz_full` do not help single-user GPU inference | E7 (variant) | P3 | untested |
@@ -85,6 +88,7 @@ Priority: **P1** = tested in the first hardware block; **P2** = Phase 2–3;
 | [H-D-06](../research/05-base-distributions-and-licensing.md) | NixOS maximizes reproducibility but raises the contributor barrier | Onboarding trial | P3 | untested |
 | [H-D-07](../research/05-base-distributions-and-licensing.md) | Yocto/Buildroot unsuitable for dGPU workstations, suit edge appliances | Desk review | P3 | untested |
 | [H-D-08](../research/05-base-distributions-and-licensing.md) | A Debian-based image is the most auditable base | E-07 | P2 | untested |
+| [H-D-10](../research/08-architecture-review.md) | A composefs/fs-verity verified read-only model store adds no measurable load-time cost vs a plain read-only store | E4 (variant), Phase 3 | P3 | untested |
 | [H-D-09](../research/05-base-distributions-and-licensing.md) | `Apache-2.0 OR MIT` + GPL-2.0 kernel/BPF minimizes licence friction | Legal review | P1 (non-HW) | untested |
 
-Total: 53 hypotheses (L 6, K 10, H 10, R 9, D 9, S 9).
+Total: 57 hypotheses (L 6, K 11, H 10, R 10, D 10, S 10) — four added by the Phase 0.1 review.

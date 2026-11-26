@@ -57,3 +57,13 @@ Adopt option 3:
 
 Revisit when the hardware pool grows (community runners) or when the
 `hw-queued` backlog repeatedly exceeds one validation batch.
+
+## Phase 0.1 review (2026-11-26)
+
+**Recommendation:** Accept with amendment. Status changes remain a maintainer decision.
+
+Amendments proposed by the review (`docs/research/08-architecture-review.md` §3):
+
+1. Validation-ledger rows record the **harness version** and the **A/A
+   calibration ID** used; a harness bug fix that affects metrics re-opens the
+   affected rows (`hw-queued`).

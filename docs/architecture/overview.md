@@ -1,6 +1,6 @@
 # Architecture Overview
 
-> Status: Phase 0 proposal (not implemented) · Last updated: 2026-11-26 · Related ADRs: 0004, 0005, 0006, 0007, 0008, 0010
+> Status: Phase 0 proposal, amended by Phase 0.1 review (`docs/research/08-architecture-review.md`) · Last updated: 2026-11-26 · Related ADRs: 0004, 0005, 0006, 0007, 0008, 0010
 
 ## Summary
 
@@ -55,6 +55,8 @@ flowchart TB
     P5[ailx-guard<br/>security / quality / stability gates] -.-> P3
     P6[ailx-models<br/>model store & loader assist]
     P7[ailx-orchestrator<br/>workload classes, GPU budgets]
+    P9[service plane<br/>local API gateway - reused]
+    P10[ailx-sandbox<br/>agent and runtime isolation]
     P8[ailx-telemetry<br/>local metrics only]
   end
   subgraph L1[Base OS substrate]
@@ -80,8 +82,10 @@ reused and pinned; L4 is out of scope except for reference workloads.
 | **ailx-knobs** | Registry of tunables with metadata; apply/verify/revert per knob | sysfs/sysctl, systemd (slices, CPUAffinity), TuneD (as backend), scx loader, NVML/amd-smi controls | Registry schema, appliers, revert journal | 2 |
 | **ailx-guard** | Enforce invariants: knob classes, quality gate, stability gate, dead-man revert timers | systemd timers, boot assessment | Policy engine | 2 |
 | **ailx-optimize** | Experiment controller: propose → stage → measure → decide → adopt/rollback; generation history | Optuna/BoTorch (search), change-point detection libs | Controller, decision rules, generation store | 2 |
-| **ailx-models** | Content-addressed model store, integrity, provenance, fetch-on-demand (opt-in network), prefetch/warm | safetensors, GGUF, HF hub client, fastsafetensors / Run:ai Model Streamer where engines support them | Store layout, metadata, prefetch policies | 2–3 |
-| **ailx-orchestrator** | Workload classes (interactive / batch / background), cgroup slices, VRAM budgets & admission control, model swap | systemd, cgroup v2, Podman/OCI, llama-swap-like routers | Policy + placement | 3–4 |
+| **ailx-models** | Content-addressed model store, integrity, provenance, licence gate, fetch-on-demand (opt-in network), prefetch/warm. **Model files are untrusted input**: digest-verified, mounted read-only into sandboxed runtimes; safetensors/GGUF by default, pickle-based loading only as `explicit-opt-in` | OCI artifacts / CNCF ModelPack [V-13][V-14], safetensors, GGUF, HF hub client, fastsafetensors / Run:ai Model Streamer; optional fs-verity/composefs for a verified read-only store [V-15] | Store policy, metadata, prefetch policies | 2–3 |
+| **ailx-orchestrator** | Workload classes (realtime / interactive / batch / background), cgroup slices, VRAM budgets & admission control (dmem cgroups where drivers support them [V-05]), model swap, checkpoint-on-preempt for training | systemd, cgroup v2, Podman/OCI, llama-swap-like routers | Policy + placement | 3–4 |
+| **Service plane** | One local API for applications and agents (OpenAI-compatible + native capability/status API); routes to runtime bundles | Existing launcher/gateway (RamaLama, Lemonade, LocalAI — evaluate) [L-24][L-33][L-53] | Integration, policy hooks | 2–3 |
+| **ailx-sandbox** | Isolation for agent tool execution and for runtimes processing untrusted model files; measured overhead | user namespaces/bubblewrap, Landlock, seccomp, gVisor or microVMs (evaluate, PK) | Profiles, overhead benchmarks | 4 |
 | **Runtime bundles** | Pinned engine builds per backend with SBOM | OCI images, systemd-sysext, Nix closures (TBD) | Build recipes, compatibility metadata | 2–3 |
 | **Base image** | Kernel config, sched_ext policies, drivers, atomic updates, boot assessment | Base distro (ADR-0005 bake-off), mkosi/bootc/etc. | Image recipes | 3 |
 
@@ -122,9 +126,10 @@ reused and pinned; L4 is out of scope except for reference workloads.
 
 | Class | Examples | CPU policy | Memory policy | GPU policy |
 |-------|----------|-----------|---------------|------------|
-| Interactive | chat, code completion, voice | high weight, latency-oriented scheduler hints | protect hot weights from eviction (`memory.min`) | priority on VRAM admission, preempt batch where engine supports it |
+| Realtime | streaming ASR/TTS, voice assistants | protected CPU share, bounded latency (RT priority only for audio I/O threads, via rtkit-style limits) | locked/hot | small reserved budget |
+| Interactive | chat, code completion | high weight, latency-oriented scheduler hints | protect hot weights from eviction (`memory.min`) | priority on VRAM admission, preempt batch where engine supports it |
 | Batch | embeddings, bulk generation, transcription | normal | normal | throughput-oriented batching |
-| Background | fine-tuning, training, indexing | low weight / idle | `memory.high` limits | yields VRAM on demand (checkpoint/stop) |
+| Background | fine-tuning, training, indexing | low weight / idle | `memory.high` limits | yields VRAM on demand (checkpoint → stop → resume) |
 | System | ailx services, desktop | protected minimal share | small reserved | none |
 
 Consumer GPUs (e.g. GeForce) lack hardware partitioning such as MIG, and MPS
@@ -155,6 +160,17 @@ New (the project's contribution):
 
 Prioritization and evidence: `docs/research/07-opportunity-matrix.md`.
 
+## Workload suitability (Phase 0.1 review)
+
+| Workload | Fit | Main open gap |
+|----------|-----|---------------|
+| LLM inference/serving, embeddings/RAG | strong | — |
+| Image generation | medium | VRAM co-residence; LPIPS thresholds need A/A calibration |
+| Video generation | medium–weak | long offload-heavy runs; no calibrated quality gate yet → performance-only claims |
+| Audio (ASR/TTS) | medium | realtime class (added above) not yet validated |
+| Training/fine-tuning | medium | checkpoint-on-preempt; loss-curve gate; training benchmark rules unreviewed |
+| Agents | medium | sandbox overhead unmeasured; admission control under bursty tool calls |
+
 ## Related documents
 
 - `hardware-abstraction.md` — provider model for NVIDIA/AMD/Intel/NPU/future
@@ -163,3 +179,4 @@ Prioritization and evidence: `docs/research/07-opportunity-matrix.md`.
 - `hardware-test-plan.md` — first tests on the workstation and Proxmox server
 - `image-and-delivery.md` — layer-first delivery, image, updates, build pipeline
 - `community-and-licensing.md` — license set, governance, contribution model
+- `phase1.1-measurement-foundation.md` — executable specification of the next block

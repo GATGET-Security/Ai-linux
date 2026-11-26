@@ -1,75 +1,77 @@
 # CURRENT — hot context
 
-> Last updated: 2026-11-26 · Keep ≤ 100 lines · Detail lives in linked docs (ADR-0002)
+> Last updated: 2026-11-26 (Phase 0.1) · Keep ≤ 100 lines · Detail lives in linked docs (ADR-0002)
 
 ## Where we are
 
-- **Phase 0 (Research & Architecture): deliverables complete, awaiting
-  maintainer review.** No code, no image, no measurements exist.
-- Research: 6 evidence-graded documents, 486 sources (A 186 / B 193 / C 85 /
-  D 22), 79 opportunities → 30 prioritized items, 53 hypotheses.
-  Access limits during research: `docs/research/00-method.md`.
+- **Phase 0 + 0.1 review complete; awaiting maintainer decisions.** No code,
+  no image, no measurements exist.
+- Research: 6 evidence-graded documents (486 sources) + independent review
+  (`research/08-architecture-review.md`, 18 sources, 17 claims re-checked
+  against primary sources: 13 confirmed, 2 corrected, 1 sharpened, 1 caveat).
+- Registers: 35 prioritized opportunities, 57 hypotheses, 22 risks.
 
-## Key findings (one line each; evidence in `docs/research/`)
+## Confirmed facts that drive decisions (source-verified)
 
-1. **The gap is the combination**: no project couples OS/runtime tuning,
-   per-machine benchmarking, quality gates and full-stack rollback (01 §F6).
-2. **Where OS work plausibly matters**: CPU/MoE offload on asymmetric
-   multi-CCD CPUs, model loading, tail latency under contention, energy —
-   *not* GPU-resident decode (H-L-01, H-S-02, H-D-03 — untested).
-3. **New kernel default to watch**: `SCHED_CACHE` (since 7.2) packs a process's
-   threads into one LLC; untested on AI workloads (H-K-01). Ubuntu 26.04
-   (Linux 7.0) does not have it yet.
-4. **sched_ext is safe as opt-in** (runtime attach, automatic fallback,
-   cgroup sub-schedulers since 7.3) (02).
-5. **RTX 4090 facts**: FP8 yes, no native FP4, FA2-family only, P2P
-   unsupported, GDS compat-mode only on GeForce (03, 04).
-6. **Every quantization is lossy; accuracy hides it** → KLD/flip-rate gates;
-   engine bugs can destroy quality silently (04).
-7. **Noise is the main failure mode of auto-tuning** → RMIT, A/A calibration,
-   winner re-validation (06).
-8. **Distro choice is a strategy choice** (layer vs own image), not a quality
-   ranking; Ubuntu 26.04 best as host, Fedora bootc / Debian+mkosi as image
-   candidates (05).
+1. `SCHED_CACHE`: new in Linux 7.2, `default y`, active on multi-LLC CPUs,
+   **debugfs-only** toggle; on a 7950X3D it packs a process into one CCD only
+   while it averages **≤ 6 running threads** [V-01][V-02].
+2. sched_ext: runtime attach/detach, automatic fallback to the fair class;
+   BPF schedulers must be GPL-compatible; cgroup sub-schedulers **since 7.1**
+   [V-03][V-04][V-06].
+3. dmem cgroup reclaim **merged in 7.3**; amdgpu, xe, nouveau register
+   regions; NVIDIA (out of tree) unclear [V-05].
+4. Zen 4: ≈64 GB/s read per CCD (theoretical) < DDR5 dual-channel peak [V-10].
+5. GPUDirect Storage: full mode only Data Center/Quadro; P2PDMA fails with
+   KASLR, NVIDIA's workaround `nokaslr` is forbidden here → GDS deprioritized [V-09].
+
+## Key hypotheses (untested; `state/hypotheses.md`)
+
+- OS work matters for CPU/MoE offload, loading, tail latency, energy — not
+  GPU-resident decode (H-L-01, H-S-02, H-D-03).
+- `SCHED_CACHE` can hurt few-thread memory-bound processes; affinity bounds it
+  (H-K-01, H-K-11). GPU power cap improves J/token (H-S-01).
+
+## Architecture (proposal; `architecture/overview.md`)
+
+Measured platform layer first, image later (ADR-0005); abstract management,
+not compute, with memory domains incl. unified-memory devices (ADR-0007);
+safety-tiered optimizer with FDR, probation, daemon coexistence and
+lockdown-aware knobs (ADR-0008); service plane + sandbox; model files treated
+as untrusted input.
 
 ## Decisions
 
-| ADR | Decision | Status |
-|-----|----------|--------|
-| 0001–0004 | ADRs; AGENTS.md canonical + tiered context; Phase 0 + evidence policy; guardrails | Accepted |
-| 0005 | Layer-first delivery; image base chosen by bake-off | **Proposed** |
-| 0006 | Ubuntu 26.04 LTS stock as benchmark baseline; arms U0/U1/U2/A | **Proposed** |
-| 0007 | Abstract management, not compute; provider plugins | **Proposed** |
-| 0008 | Self-optimizer safety tiers T0–T3 and adoption rules | **Proposed** |
-| 0009 | `Apache-2.0 OR MIT` / GPL-2.0 kernel+BPF / CC-BY-4.0 / DCO | **Proposed — legal review** |
-| 0010 | Build-heavy / deferred validation | **Proposed** |
+| ADR | Decision | Status / review recommendation |
+|-----|----------|-------------------------------|
+| 0001–0004 | ADRs; AGENTS.md canonical; evidence policy; guardrails | Accepted |
+| 0005 | Layer-first; image base by bake-off | Proposed → accept w/ amendments |
+| 0006 | Ubuntu 26.04 GA-kernel baseline; arms U0/U1/U2/A | Proposed → accept w/ amendments |
+| 0007 | Abstract management, not compute | Proposed → accept w/ amendment |
+| 0008 | Safety tiers T0–T3 | Proposed → accept after amendments |
+| 0009 | `Apache-2.0 OR MIT` / GPL-2.0 kernel+BPF / CC-BY-4.0 / DCO | Proposed → legal review first |
+| 0010 | Build-heavy / deferred validation | Proposed → accept w/ amendment |
 
-## Next development block (recommended): Phase 1 / Block 1.1 "Measurement foundation"
+## Next development block: Phase 1.1 "Measurement foundation"
 
-Goal: be able to make *one* trustworthy statement about one change on one
-machine. Scope (layer mode, Ubuntu 26.04; details in `state/roadmap.md`):
-
-1. `ailx-probe`: hardware profile + environment fingerprint (versioned schemas).
-2. Manifest schemas: workload, result, knob (draft).
-3. Harness core + adapters: llama-bench, `vllm bench serve`/GuideLLM.
-4. Statistics: RMIT scheduling, bootstrap CIs, effect sizes, A/A analysis.
-5. Telemetry: NVML energy/power, privileged RAPL collector, PSI, wall-meter logger.
-6. Quality gate v0: llama.cpp KLD + top-token agreement vs stored reference.
-7. Local result store; report generator that only cites result IDs.
-
-Acceptance: unit-tested with synthetic data; A/A analysis implemented; runs
-CPU-only in CI; ready for HW-0…HW-2 in `architecture/hardware-test-plan.md`.
+Executable spec: **`architecture/phase1.1-measurement-foundation.md`**
+(Python for benchmark infrastructure; JSON Schemas + JSON-Lines sampler
+protocol as language-neutral contracts). 8 work packages: schemas → probe →
+runner/adapters → statistics (RMIT, BCa bootstrap, FDR, power) → telemetry
+(NVML, PSI, privileged RAPL helper, meter adapter) → KLD quality gate →
+content-addressed store/reports → CLI/CI/runbook.
+Done = synthetic A/A and 5%-effect campaigns decide correctly in CPU-only CI;
+tiny-model campaign end-to-end; no hardware claims.
 
 ## Blockers / needed from maintainers
 
-- Review/accept ADRs 0005–0010; legal review for 0009 (repo has no licence yet).
-- Decide Phase 1 language (proposal: Python for harness) — open-questions A5.
-- Procure a logging wall meter (energy ground truth) — A4.
-- Wider network access for verification of PK/snippet facts
-  (`research/00-method.md`).
+- Licence decision or interim statement (ADR-0009) — prerequisite P1.
+- Accept/amend ADRs 0005–0010 (open-questions A1, A8).
+- Wall meter procurement (A4) — needed for Block 1.2, not 1.1.
+- Wider network access for verifying remaining PK/snippet facts.
 
 ## Where to look
 
-`INDEX.md` (map) · `architecture/overview.md` · `architecture/benchmarking.md` ·
-`architecture/hardware-test-plan.md` · `research/07-opportunity-matrix.md` ·
-`state/hypotheses.md` · `state/risks.md` · `state/open-questions.md`
+`INDEX.md` · `research/08-architecture-review.md` ·
+`architecture/phase1.1-measurement-foundation.md` · `architecture/benchmarking.md` ·
+`architecture/hardware-test-plan.md` · `state/hypotheses.md` · `state/risks.md`

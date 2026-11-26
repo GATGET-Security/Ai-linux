@@ -16,7 +16,10 @@ existing open-source components.
 
 ## 2. Current phase
 
-**Phase 0 — Research & Architecture.** No distribution, no production code.
+**Phase 0 — Research & Architecture (incl. 0.1 review).** No distribution, no production code.
+Next: Phase 1.1 Measurement Foundation, specified in
+`docs/architecture/phase1.1-measurement-foundation.md` (starts once its
+prerequisites are met).
 Allowed outputs: research notes, architecture documents, ADRs, plans,
 benchmark *designs*. Read `docs/CURRENT.md` for the live state before doing
 anything else.

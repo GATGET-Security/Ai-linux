@@ -104,7 +104,7 @@ sanity checks. This also tests H-L-01 / H-S-02 directly (U1 vs U0 vs U2).
 |----|-----------|----------------------|---------------|-----------|-------|
 | E1 | GPU power-limit sweep | 50–100% in 5% steps, RMIT | W-LLM-1/2 decode, prefill, W-IMG-1 | H-S-01 | Only reductions within vendor range; energy via wall meter |
 | E2 | MoE expert offload fit and CCD placement | `--n-cpu-moe` levels × CPU set (V-Cache CCD / other CCD / both) × X3D mode | W-LLM-3 | H-H-01, H-H-06, H-K-09 | Highest-value CPU-side experiment |
-| E3 | Cache-aware scheduling | Kernel ≥7.2 with `SCHED_CACHE` enabled vs disabled (build variants or debugfs on an offline research entry) | W-LLM-3, CPU-only decode at 4–16 threads | H-K-01 | Baseline Ubuntu 26.04 (7.0) is unaffected; relevant for newer kernels/HWE |
+| E3 | Cache-aware scheduling | Kernel ≥7.2 with `SCHED_CACHE` enabled vs disabled (build variants or debugfs on an offline research entry) × explicit CCD affinity on/off | W-LLM-3, CPU decode and MoE expert compute at 2, 4, 6, 8, 12 threads (aggregation window on 7950X3D: ≤ 6 avg. running threads [V-01]) | H-K-01, H-K-11 | Baseline Ubuntu 26.04 (7.0) is unaffected; HWE kernels will be |
 | E4 | Model loading paths | mmap vs O_DIRECT/parallel pinned loader (e.g. fastsafetensors, Model Streamer) vs GDS compat; cold vs warm | W-LOAD-1 | H-S-06, H-H-03 | Stage-level timestamps |
 | E5 | Offload strategy | CPU compute of offloaded layers (llama.cpp) vs weight streaming (vLLM CPU offload), batch 1–64 | W-LLM-2/3 | H-H-02 | |
 | E6 | Memory policy | THP never/madvise/always, mTHP sizes, DAMON collapse; FS for model store (ext4 vs XFS) | W-LLM-3, W-LOAD-1 | H-K-05 | |

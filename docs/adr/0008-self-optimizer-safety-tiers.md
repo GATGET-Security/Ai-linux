@@ -47,3 +47,19 @@ Option 3, as specified in `docs/architecture/self-optimization.md`:
 
 Phase 2 experiment: inject known-neutral and known-harmful knob changes and
 verify that the rules reject them at the configured false-positive rate.
+
+## Phase 0.1 review (2026-11-26)
+
+**Recommendation:** Accept after amendments. Status changes remain a maintainer decision.
+
+Amendments proposed by the review (`docs/research/08-architecture-review.md` §3):
+
+1. Screening campaigns use FDR control (Benjamini–Hochberg); adoption only
+   after a pre-registered confirmatory campaign with fresh data.
+2. **Probation**: T1 adoptions become persistent only after a soak subset
+   without stability events.
+3. **Coexistence**: knobs managed by other daemons are taken over only with
+   explicit consent, otherwise left alone.
+4. Knobs that require lockdown to be off (debugfs/MSR writes, e.g.
+   `SCHED_CACHE` tunables [V-01]) are `explicit-opt-in` and never auto-applied.
+Details: `docs/architecture/self-optimization.md`.

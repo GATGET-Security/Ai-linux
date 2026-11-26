@@ -56,3 +56,16 @@ for every supported workload class where technically feasible.
 
 Revisit if measurements show that a required optimization cannot be achieved
 without owning a compute layer (e.g. cross-vendor model splitting at scale).
+
+## Phase 0.1 review (2026-11-26)
+
+**Recommendation:** Accept with amendment. Status changes remain a maintainer decision.
+
+Amendments proposed by the review (`docs/research/08-architecture-review.md` §3):
+
+1. The capability model uses **memory domains** (discrete, unified, host);
+   unified-memory APUs/SoCs are in scope, and their GPU-usable memory limit
+   (TTM) is a knob, not a constant [V-11]
+   (`docs/architecture/hardware-abstraction.md`).
+2. Before freezing the provider schema, evaluate CDI/DRA-style device
+   descriptions for reuse (review T8).

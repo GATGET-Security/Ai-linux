@@ -121,3 +121,15 @@ of AI Linux is the combination (confirmed as a gap in [L-*] §F6):
 4. **Cross-engine VRAM arbitration on consumer GPUs** (#16, later #25).
 5. **Reproducible, comparable results** keyed by hardware profile and
    fingerprint, shared opt-in (#1, #3).
+
+## Phase 0.1 review additions
+
+From `08-architecture-review.md` §2 (scores use the same heuristic):
+
+| # | Item | Tier | B | C | F | R | E | Score | Quality | Notes |
+|---|------|------|---|---|---|---|---|-------|---------|-------|
+| 31 | **Runtime sandboxing for untrusted model files** (read-only digest-verified mounts, no network, no pickle by default) | P2 (security prerequisite for the service plane) | 4 | 4 | 4 | 1 | 2 | 32 | n.a. | RK-19; builds on RamaLama defaults [L-24] |
+| 32 | **Unified-memory device support** (memory domains, TTM limit as T2 knob) | P2 | 4 | 3 | 3 | 2 | 2 | 9 | n.a. | No test hardware yet [V-11] |
+| 33 | **OCI/ModelPack model packaging** in `ailx-models` (reuse) | P2 (merges into #19/#29) | 3 | 4 | 4 | 1 | 2 | 24 | n.a. | [V-13][V-14] |
+| 34 | **Userspace PGO/BOLT runtime-bundle builds** for CPU inference | P3 | 3 | 2 | 3 | 2 | 2 | 4.5 | lossless (verify) | H-R-10 |
+| 35 | **Verified model store** (composefs/fs-verity) | P3 | 2 | 3 | 2 | 2 | 3 | 2 | n.a. | Upstream work in progress [V-15][V-16]; H-D-10 |

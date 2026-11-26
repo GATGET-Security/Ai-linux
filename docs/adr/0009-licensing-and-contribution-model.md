@@ -55,3 +55,16 @@ Research (`docs/research/05-base-distributions-and-licensing.md` Part 2) found:
 
 Legal review outcome; foundation entry requirements; EU CRA steward status
 [D-89][D-90][D-91].
+
+## Phase 0.1 review (2026-11-26)
+
+**Recommendation:** Keep Proposed until legal review; decide before the first code merge (Phase 1.1 prerequisite P1). Status changes remain a maintainer decision.
+
+Amendments proposed by the review (`docs/research/08-architecture-review.md` §3):
+
+1. Userspace code derived from the `sched-ext/scx` project inherits
+   **GPL-2.0-only** (scx and e.g. `scx_layered` are GPL-2.0/GPL-2.0-only
+   [V-17]); keep such code in a separate directory/package with its own
+   licence boundary.
+2. Model files and third-party model packages (OCI/ModelPack) keep their own
+   licences; the model manifest records them.

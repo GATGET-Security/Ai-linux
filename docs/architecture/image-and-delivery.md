@@ -9,7 +9,7 @@
   hosts. An own image is prototyped in CI only and released no earlier than
   Phase 3, on a base chosen by measured experiments.
 - **Kernel policy**: follow a recent stable kernel rather than an old LTS for
-  the image track — sched_ext sub-schedulers (7.3), cache-aware scheduling
+  the image track — sched_ext sub-schedulers (since 7.1, feature-complete 7.3), dmem reclaim (7.3), cache-aware scheduling
   (7.2) and several production scx schedulers (≥6.16) are recent [K-09][K-14][K-19].
   In layer mode, the host's kernel is used and capability-detected.
 - **Atomic updates with automatic rollback** via upstream mechanisms (bootc /

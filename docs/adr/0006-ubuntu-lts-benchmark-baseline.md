@@ -40,3 +40,17 @@ must be precisely defined to be reproducible.
 Revisit if most target users move to another distribution, or if the
 container layer itself is shown to distort results (control run disagrees
 beyond the A/A noise floor).
+
+## Phase 0.1 review (2026-11-26)
+
+**Recommendation:** Accept with amendments. Status changes remain a maintainer decision.
+
+Amendments proposed by the review (`docs/research/08-architecture-review.md` §3):
+
+1. The baseline kernel is the **GA kernel** of the LTS (26.04: Linux 7.0
+   [D-02]). An HWE kernel is a **new baseline generation**, because HWE
+   kernels ≥ 7.2 bring `SCHED_CACHE` (default on, multi-LLC CPUs) into
+   "stock" Ubuntu [V-01][V-02].
+2. The fingerprint records active tuning daemons (power-profiles-daemon,
+   TuneD, irqbalance, thermald) in every arm; arm U2 replaces the stock power
+   daemon by TuneD explicitly.

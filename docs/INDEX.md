@@ -1,6 +1,6 @@
 # Documentation Index
 
-> Last updated: 2026-11-26 · Start with [`../AGENTS.md`](../AGENTS.md) and [`CURRENT.md`](CURRENT.md)
+> Last updated: 2026-11-26 (Phase 0.1) · Start with [`../AGENTS.md`](../AGENTS.md) and [`CURRENT.md`](CURRENT.md)
 
 Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 **cold** = read on demand and cite by ID.
@@ -23,6 +23,7 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 | [`architecture/hardware-test-plan.md`](architecture/hardware-test-plan.md) | First tests: Ryzen 9 7950X3D + RTX 4090, i5-11500 Proxmox server |
 | [`architecture/image-and-delivery.md`](architecture/image-and-delivery.md) | Layer-first delivery, base-distro bake-off, image/update/rollback, build pipeline |
 | [`architecture/community-and-licensing.md`](architecture/community-and-licensing.md) | License set, governance, contribution and community strategy |
+| [`architecture/phase1.1-measurement-foundation.md`](architecture/phase1.1-measurement-foundation.md) | **Executable specification of the next block** (schemas, WPs, acceptance criteria) |
 
 ## State and planning (warm)
 
@@ -63,3 +64,4 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 | [`research/05-base-distributions-and-licensing.md`](research/05-base-distributions-and-licensing.md) | Base distro comparison; licensing & community research | D |
 | [`research/06-self-optimization-and-benchmarking.md`](research/06-self-optimization-and-benchmarking.md) | Auto-tuning, rollback, benchmark methodology, quality & energy metrics | S |
 | [`research/07-opportunity-matrix.md`](research/07-opportunity-matrix.md) | Consolidated, prioritized opportunities | O |
+| [`research/08-architecture-review.md`](research/08-architecture-review.md) | Phase 0.1 independent review: source verification, corrections, gaps, ADR assessment | V |

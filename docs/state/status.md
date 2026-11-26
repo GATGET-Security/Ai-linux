@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-11-26 · Phase: **0 — Research & Architecture (deliverables complete, awaiting maintainer review)**
+> Last updated: 2026-11-26 · Phase: **0.1 — Independent architecture review complete; awaiting maintainer decisions before Phase 1.1**
 
 ## Deliverables of Phase 0
 
@@ -20,6 +20,20 @@
 | ADRs 0001–0004 | `docs/adr/` | Accepted |
 | ADRs 0005–0010 | `docs/adr/` | **Proposed — need maintainer review** |
 | Hypotheses (53), risks (18), open questions, roadmap | `docs/state/` | done |
+| **Phase 0.1 review** (source verification, corrections, gaps, ADR assessment) | `docs/research/08-architecture-review.md` | done |
+| **Phase 1.1 executable specification** | `docs/architecture/phase1.1-measurement-foundation.md` | ready (blocked by prerequisites P1–P3) |
+| Register updates after review: 57 hypotheses, 22 risks | `docs/state/` | done |
+
+## Phase 0.1 review outcome
+
+- 17 decision-relevant claims checked against primary sources (mostly Linux
+  source at 7.4-rc4 and tagged releases): 13 confirmed, 2 corrected
+  (sched_ext sub-schedulers since 7.1; dmem reclaim merged in 7.3),
+  1 sharpened (`SCHED_CACHE` window ≤ 6 running threads on 7950X3D),
+  1 confirmed with caveat (GDS GeForce = inference from NVIDIA's wording).
+- Architecture extended: memory domains/unified memory, service plane,
+  sandbox, realtime class, model-file security, tuning-daemon coexistence,
+  lockdown-aware knobs, pre-registration/FDR/output-length control.
 
 ## Validation status
 

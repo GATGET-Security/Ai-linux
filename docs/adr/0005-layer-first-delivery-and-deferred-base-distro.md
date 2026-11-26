@@ -68,3 +68,20 @@ config, signed modules, atomic rollback of the whole stack) eventually do.
   control, accelerate the image track.
 - If measurements show OS-level gains are negligible (H-L-01 confirmed), keep
   layer mode as the main product and treat the image as a convenience.
+
+## Phase 0.1 review (2026-11-26)
+
+**Recommendation:** Accept with amendments. Status changes remain a maintainer decision.
+
+Amendments proposed by the review (`docs/research/08-architecture-review.md` §3):
+
+1. **Image-track trigger** (added to the decision): the own-image track starts
+   when any of these holds — (a) a hardware-validated gain requires kernel
+   config, boot parameters or signed out-of-tree modules that layer mode cannot
+   deliver; (b) full-stack rollback (H-L-05) is required for a validated
+   profile; (c) maintainers decide so after Phase 2.
+2. **Capability detection**: layer mode detects missing kernel features
+   (`/sys/kernel/sched_ext`, `SCHED_CACHE` presence, dmem controller, lockdown
+   state) and disables dependent knobs instead of failing [V-01][V-04][V-05].
+3. The vision remains a full compute platform; layer mode is the delivery
+   vehicle, not the product boundary.

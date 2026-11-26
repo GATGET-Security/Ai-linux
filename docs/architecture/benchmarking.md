@@ -1,6 +1,6 @@
 # Benchmark Methodology (Ubuntu Baseline)
 
-> Status: Phase 0 proposal (not implemented, no measurements yet) · Last updated: 2026-11-26 · Related ADRs: 0003, 0006, 0008 · Evidence: `docs/research/06-self-optimization-and-benchmarking.md` [S-*], `docs/research/04-runtimes-and-workloads.md` [R-*], `docs/research/03-hardware-io-and-model-loading.md` [H-*]
+> Status: Phase 0 proposal, amended by Phase 0.1 review (no measurements yet) · Last updated: 2026-11-26 · Related ADRs: 0003, 0006, 0008 · Evidence: `docs/research/06-self-optimization-and-benchmarking.md` [S-*], `docs/research/04-runtimes-and-workloads.md` [R-*], `docs/research/03-hardware-io-and-model-loading.md` [H-*]
 
 ## Summary
 
@@ -132,6 +132,29 @@ than the configured false-positive rate.
 **Reporting**: median with 95% bootstrap CI, p50/p90/p99, and the **effect size
 with CI** (ratio of medians or Hodges–Lehmann shift) [S-48][S-49]. Non-normal
 data uses nonparametric methods (Mann–Whitney U / bootstrap) [S-49].
+
+**Pre-registration (Phase 0.1 review)**: every campaign manifest fixes,
+before the first run, the hypothesis IDs, arms, primary and guard metrics,
+E_min, α, multiple-comparison policy, stopping rule and the RMIT seed
+(schema `campaign.v0`, `phase1.1-measurement-foundation.md`). Changing the
+plan after data exists creates a new campaign.
+
+**Multiple comparisons**: exploratory screening campaigns control the false
+discovery rate (Benjamini–Hochberg); confirmatory campaigns test one
+pre-registered primary metric per hypothesis.
+
+**Power**: the number of runs per arm is derived from the A/A variance of the
+primary metric and E_min (simulation-based) before the campaign starts.
+
+**Output-length control**: throughput and latency workloads use a fixed
+output length (EOS ignored, achieved length verified); natural output lengths
+are used only in trace-replay workloads (W-AGT-1), whose length distribution
+is recorded (H-S-10).
+
+**Thermal and boost control**: GPU/CPU clocks and temperatures are recorded
+with every sample; a fixed cooldown policy between runs and a thermal
+steady-state criterion before the measurement window; runs that throttle are
+flagged.
 
 **Significance policy (initial, to be calibrated — H-S-03)**: a difference is
 *claimed* only if the CI lower bound exceeds max(2%, 2 × A/A noise floor). Smaller

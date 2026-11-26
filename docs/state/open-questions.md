@@ -14,17 +14,20 @@ answerable by reading primary sources once network access allows ·
 | A2 | Licence set (ADR-0009) — commission legal review; until then the repo has no licence | [LEGAL][DECIDE] |
 | A3 | Project name/trademark ("AI Linux" is a working name) | [LEGAL][DECIDE] |
 | A4 | Budget for measurement hardware: logging wall meter (ideally SPEC PTDaemon-supported), optional inline GPU power measurement, ambient sensor | [DECIDE]; needed for H-S-01, H-S-07 |
-| A5 | Implementation language(s) for Phase 1 (proposal: Python for harness/analysis because the AI tooling ecosystem is Python; revisit Rust for the privileged daemon in Phase 2) | [DECIDE] |
+| A5 | Implementation language for performance-critical/privileged components (daemon, samplers) — deferred; contracts are language-neutral | [DECIDE] Phase 2 |
 | A6 | Communication platform and Code of Conduct version | [DECIDE] |
+| A7 | ~~Phase 1 language~~ **Decided: Python for benchmark infrastructure; contracts language-neutral** (`phase1.1-measurement-foundation.md`) | done |
+| A8 | Accept review amendments to ADRs 0005–0010 (`08-architecture-review.md` §3) | [DECIDE] |
 
 ## B. Kernel and OS
 
 | # | Question | Type |
 |---|----------|------|
 | B1 | Do stock Ubuntu 26.04 / Debian 13 / Fedora 45 kernels enable `CONFIG_SCHED_CLASS_EXT` and package `scx`? | [DOC][HW] |
-| B2 | Effect of `SCHED_CACHE` (≥7.2) on CPU inference on 2-CCD Ryzen; will a non-debugfs knob be accepted upstream? (H-K-01) | [HW] + upstream |
+| B2 | Effect of `SCHED_CACHE` (≥7.2) on few-thread (≤6) memory-bound processes on 2-CCD Ryzen; does explicit affinity bound it (H-K-11); will a non-debugfs knob be accepted upstream? (H-K-01) | [HW] + upstream |
 | B3 | Under Secure Boot lockdown, which scx loaders, bpftrace scripts and power tools work? | [HW][DOC] |
-| B4 | Is dmem reclaim merged; does NVIDIA's out-of-tree driver register dmem regions? | [DOC] |
+| B4 | ~~Is dmem reclaim merged?~~ **Answered: merged in v7.3** [V-05]. Open: does NVIDIA's out-of-tree driver register dmem regions? | [DOC] |
+| B7 | What is `SCX_WATCHDOG_MAX_TIMEOUT` in current mainline (Phase 0 said 30 s; not re-verified) | [DOC] |
 | B5 | Which kernel becomes the 2026 LTS? | [DOC] |
 | B6 | Can NPUs (amdxdna, ivpu) be accounted/scheduled alongside GPUs (fdinfo, dmem, cgroups)? | [DOC][HW] |
 
@@ -39,6 +42,7 @@ answerable by reading primary sources once network access allows ·
 | C5 | Does OpenVINO/Level Zero work for UHD 750 in LXC on the Proxmox 7.0 kernel? | [HW] |
 | C6 | Is the Proxmox host quiet enough for CPU-only benchmarks or only fit as controller? | [HW] (A/A) |
 | C7 | ZFS (ARC + page cache) double caching for mmap'd models | [DOC][HW] |
+| C8 | Unified-memory devices: realistic GPU-usable share and bandwidth under TTM limits; test hardware (Strix Halo-class) acquisition | [HW][DECIDE] |
 
 ## D. Runtimes and quality
 
@@ -72,6 +76,7 @@ answerable by reading primary sources once network access allows ·
 | F4 | Ubuntu trademark/derivative policy for an Ubuntu-based image | [LEGAL] |
 | F5 | Sigstore/cosign, OpenSSF Scorecard, KIWI, debos, archiso evaluation (not researched) | [DOC] |
 | F6 | NixOS reproducibility status, lanzaboote maturity, 26.11 status | [DOC] |
+| F7 | Adopt OCI/ModelPack as model packaging; composefs/fs-verity for model store (maturity upstream) | [DOC][DECIDE] |
 
 ## G. Contradictory evidence (recorded, unresolved)
 

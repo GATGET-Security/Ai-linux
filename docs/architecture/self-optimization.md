@@ -1,6 +1,6 @@
 # Self-Optimization: Closed-Loop Tuning with Safe Adoption and Rollback
 
-> Status: Phase 0 proposal (not implemented) · Last updated: 2026-11-26 · Related ADRs: 0004, 0008 · Evidence: `docs/research/06-self-optimization-and-benchmarking.md`
+> Status: Phase 0 proposal, amended by Phase 0.1 review · Last updated: 2026-11-26 · Related ADRs: 0004, 0008 · Evidence: `docs/research/06-self-optimization-and-benchmarking.md`
 
 ## Summary
 
@@ -90,13 +90,33 @@ The classification of concrete kernel knobs is in
 - **Small privileged surface**: TuneD's local privilege-escalation CVEs show
   that a root tuning daemon is attack surface [S-01] (RK-07).
 
+## Coexistence and lockdown rules (Phase 0.1 review)
+
+- **Other tuning agents**: before managing a knob, detect services that manage
+  the same knob (TuneD, power-profiles-daemon, irqbalance, thermald, desktop
+  power managers, distro `scx` loaders). Either take over explicitly with user
+  consent (and record it in the fingerprint) or leave the knob unmanaged —
+  never fight another daemon.
+- **Lockdown-incompatible knobs**: knobs that need debugfs writes or MSR access
+  (e.g. `SCHED_CACHE`'s `llc_balancing/*` [V-01]) cannot be applied under
+  Secure Boot lockdown [K-61]. The registry marks them
+  `requires: lockdown=none`; they are `explicit-opt-in`, never auto-applied,
+  and the planner prefers lockdown-compatible substitutes (e.g. cpusets/CPU
+  affinity to bound `SCHED_CACHE` aggregation, H-K-11).
+- **Probation**: a T1 adoption becomes persistent only after a probation
+  period (soak subset) without stability events — dead-man timers catch
+  immediate failures, probation catches delayed ones (memory policy → OOM
+  after hours).
+
 ## Search strategy
 
 1. **Priors**: start from the community/maintainer profile matching the
    hardware profile (opt-in data; offline bundles shipped with releases).
 2. **Screening**: one-factor-at-a-time and small fractional-factorial designs to
    find influential knobs cheaply (most knobs will have no measurable effect —
-   that result is valuable and is recorded).
+   that result is valuable and is recorded). Screening p-values are corrected
+   with Benjamini–Hochberg (FDR); screening results never lead to adoption
+   directly — only to a confirmatory campaign with fresh data.
 3. **Refinement**: noise-aware Bayesian optimization (single objective, or
    multi-objective for throughput/latency/energy) only over influential knobs.
 4. **Budget**: user-set time/energy budget; scheduled for idle periods; never

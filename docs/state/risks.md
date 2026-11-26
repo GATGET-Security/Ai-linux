@@ -1,6 +1,6 @@
 # Risk Register
 
-> Status: Phase 0 · Last updated: 2026-11-26 · Likelihood/impact are qualitative judgments (L/M/H), not measurements
+> Status: Phase 0, updated by Phase 0.1 review · Last updated: 2026-11-26 · Likelihood/impact are qualitative judgments (L/M/H), not measurements
 
 | ID | Risk | Category | Likelihood | Impact | Mitigation | Trigger to revisit |
 |----|------|----------|-----------|--------|------------|--------------------|
@@ -22,3 +22,7 @@
 | RK-16 | **New kernel defaults regress silently** (e.g. `SCHED_CACHE` since 7.2 on multi-CCD CPUs, H-K-01 [K-19][K-20]) | Technical | M | M | Baseline canary across kernel updates; change-point detection; upstream reports | Kernel update in baseline |
 | RK-17 | **Phase 0 evidence gaps**: some facts seen only as search snippets or from prior knowledge ("PK"), due to sandbox network limits (`research/00-method.md`) | Method | M | M | Phase 1 task: verify all PK/snippet-only facts that feed ADRs; keep ADRs "Proposed" until then | Phase 1 start |
 | RK-18 | **Vendor capture** of governance or roadmap | Governance | L–M | H | Vendor-neutral governance roadmap; no single-organization majority (`community-and-licensing.md`) | Steering-council formation |
+| RK-19 | **Untrusted model files** (pickle code execution; parser bugs in binary formats) compromise the host | Security | M | H | Digest-verified store; sandboxed runtimes with read-only model mounts and no network; safetensors/GGUF by default; pickle = `explicit-opt-in` (`overview.md`, review T4) | Any parser CVE in a bundled engine |
+| RK-20 | **Hardware model too dGPU-centric**; unified-memory devices (APUs/SoCs) mis-planned | Validity | M | M | Memory domains in the capability model; UMA test hardware on wish-list (review T1) | First UMA user reports |
+| RK-21 | **Bundle × backend × host matrix** grows beyond maintenance capacity | Organization | H | M | Until Phase 3: one tier-1 host, two tier-1 bundles (llama.cpp, vLLM), one tier-1 vendor (NVIDIA); everything else best-effort (review §6) | Matrix exceeds CI budget |
+| RK-22 | **Conflicts with other tuning daemons** (TuneD, power-profiles-daemon, irqbalance, thermald) produce oscillating or unattributed settings | Technical | M | M | Detect and yield or take over with consent; record daemons in fingerprint (ADR-0008 amendment) | Unexplained knob changes in journal |

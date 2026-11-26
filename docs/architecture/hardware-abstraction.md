@@ -1,6 +1,6 @@
 # Hardware Abstraction: Accelerator Provider Model
 
-> Status: Phase 0 proposal (not implemented) · Last updated: 2026-11-26 · Related ADRs: 0007
+> Status: Phase 0 proposal, amended by Phase 0.1 review · Last updated: 2026-11-26 · Related ADRs: 0007
 
 ## Summary
 
@@ -32,12 +32,28 @@ Provider
   runtime_compat()      -> [(runtime_bundle, backend, constraints)]
 ```
 
-`Capabilities` (normalized): memory size and theoretical bandwidth, compute
+`Capabilities` (normalized): **memory domains** (see below), compute
 units, supported numeric formats (FP32/FP16/BF16/FP8/FP4/INT8/INT4 — native
 vs emulated), host link (PCIe gen/width, measured bandwidth), unified/shared
 memory, P2P support, partitioning features (MIG/SR-IOV/none), preemption
 granularity if known, power-control ranges, NPU-specific limits (ops/model
 formats).
+
+**Memory domains** (added in Phase 0.1 review). Each device lists one or more
+domains `{kind, size_bytes, bw_theoretical, bw_measured?, shared_with?,
+limit_source?}` with `kind ∈ {discrete, unified, host}`:
+
+- *discrete* — dedicated VRAM (e.g. RTX 4090: 24 GB, 1008 GB/s theoretical [H-12]).
+- *unified* — system RAM usable by the GPU (APUs/SoCs such as AMD Strix Halo,
+  NVIDIA GB10-class). The GPU-usable share is a kernel limit (TTM
+  `ttm.pages_limit`; default ≈50% of RAM on AMD APUs; `amdgpu.gttsize`
+  deprecated) [V-11][V-12] and is therefore a **T2 knob** (`allowed`), not a
+  fixed capability. CPU and GPU compete for the same bandwidth.
+- *host* — system RAM reachable over the host link (offload target).
+
+The planner computes fit and bandwidth bounds per domain; offload decisions
+differ fundamentally between discrete (PCIe-bound) and unified (shared-DRAM)
+devices.
 
 Rules:
 
@@ -53,7 +69,8 @@ Rules:
 
 | Provider | Devices | Kernel side | Userspace/compute | Notes for Phase 1–4 |
 |----------|---------|-------------|-------------------|---------------------|
-| `cpu-x86` | AMD Zen, Intel Core/Xeon | cpufreq (amd-pstate / intel_pstate), RAPL, resctrl, sched_ext | ggml CPU, oneDNN, OpenVINO CPU, ONNX Runtime | Must model asymmetric CCDs (e.g. X3D V-Cache CCD) and ISA (AVX-512/VNNI/BF16) |
+| `cpu-x86` | AMD Zen, Intel Core/Xeon | cpufreq (amd-pstate / intel_pstate), RAPL, resctrl, sched_ext, `amd_x3d_vcache` (default `frequency` [V-08]) | ggml CPU, oneDNN, OpenVINO CPU, ONNX Runtime | Must model LLC domains (CCDs), per-CCD fabric limits (≈64 GB/s read theoretical on Zen 4 [V-10]), X3D asymmetry, `SCHED_CACHE` aggregation (≥7.2) [V-01] and ISA (AVX-512/VNNI/BF16) |
+| `amd-apu` (unified) | Ryzen AI Max (Strix Halo) and similar | amdgpu, TTM limits | ROCm/HIP, Vulkan | Unified memory domain; no test hardware yet — wish-list |
 | `nvidia` | GeForce/RTX/data-center | NVIDIA open kernel modules (preferred; Turing+, must match proprietary userspace/GSP firmware version) [D-59][D-60] | NVML, CUDA, cuBLAS, optional TensorRT | First target (RTX 4090). Optional/proprietary userspace; GeForce has no MIG; MPS status unclear [R-41][R-42] |
 | `amd-gpu` | Radeon/Instinct | amdgpu/amdkfd (upstream) | ROCm/HIP (ROCm 10, TheRock-built) [R-33][R-34], amd-smi, Vulkan (RADV) | Consumer support varies by generation; llama.cpp Vulkan reportedly beats ROCm on several consumer setups [R-74] (H-R-07) |
 | `intel-gpu` | Arc/iGPU (Xe) | xe / i915 | Level Zero, upstream PyTorch XPU, OpenVINO, Vulkan (ANV); IPEX/IPEX-LLM archived [L-27][L-28] | iGPU of the i5-11500 test server is a low-priority secondary target (support contested [H-27][H-28]) |
@@ -104,6 +121,7 @@ Steps:
   (see `docs/state/open-questions.md`).
 - How to represent NPUs whose supported operator sets/model formats are narrow
   (capability = list of supported model families/compilers rather than FLOPs).
-- Whether to adopt an existing device/telemetry abstraction (e.g. Kubernetes
-  DRA-style device descriptions, OpenTelemetry semantic conventions) instead
-  of defining our own schema.
+- Whether to adopt an existing device/telemetry abstraction (e.g. CDI as used
+  by Podman for GPUs, Kubernetes DRA-style device descriptions, OpenTelemetry
+  semantic conventions) instead of defining our own schema — to be decided
+  before the v0 schema freeze (Phase 1.1 WP1).
