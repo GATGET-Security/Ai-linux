@@ -1,0 +1,57 @@
+# ADR-0009: Licensing set and contribution model
+
+> Status: Proposed — **requires legal review before acceptance** · Date: 2026-11-26 · Deciders: maintainers (pending)
+
+## Context
+
+All own code must be open source; proprietary drivers may be optional.
+Research (`docs/research/05-base-distributions-and-licensing.md` Part 2) found:
+
+- Apache-2.0 has an explicit patent grant but is not compatible with
+  GPLv2-only kernel code; MIT is compatible but has no explicit patent grant
+  [D-78][D-79][D-60]. `Apache-2.0 OR MIT` combines both (used e.g. by bootc)
+  [D-34].
+- In-kernel code must be GPL-2.0; sched_ext schedulers are BPF struct_ops
+  programs and are rejected by the verifier unless they declare a
+  GPL-compatible licence; userspace loaders may be permissive [D-57][D-58].
+- DCO is the kernel's lightweight contribution certification; projects are
+  moving from CLAs to DCO [D-84][D-85].
+- CUDA/cuDNN/TensorRT and many model weights may not be redistributed freely
+  [D-61][D-63][D-64][D-70][D-71].
+- Single-vendor governance is a risk (Intel's abrupt end of Clear Linux) [L-26].
+
+## Decision (proposed)
+
+| Artifact | Licence |
+|----------|---------|
+| Userspace tools, daemons, libraries, image recipes | `Apache-2.0 OR MIT` |
+| Kernel patches and modules | `GPL-2.0-only` |
+| BPF programs (sched_ext, struct_ops, LSM) | `GPL-2.0-only` (or `GPL-2.0-only OR BSD-2-Clause` where reuse in other kernels is wanted) |
+| Documentation | `CC-BY-4.0`; code snippets in docs `MIT` |
+| Configuration examples | `0BSD` or `MIT` |
+| Published benchmark data | `CC-BY-4.0` (to be confirmed; CDLA-Permissive-2.0 as alternative) |
+
+- Every file carries SPDX headers; the repository follows REUSE.
+- Contributions use the **Developer Certificate of Origin** (`Signed-off-by`),
+  enforced in CI; **no CLA**.
+- Third-party proprietary components (NVIDIA userspace, CUDA, cuDNN,
+  TensorRT, oneAPI parts) and model weights are **fetched on demand** from the
+  vendor or distribution, never redistributed by default; model licences are
+  recorded in model manifests and SBOMs and accepted explicitly by the user.
+- Governance starts with founding maintainers under a published charter,
+  moves to an elected steering council at roughly ten regular contributors,
+  and evaluates a neutral foundation (e.g. LF AI & Data) later
+  (`docs/architecture/community-and-licensing.md`).
+
+## Consequences
+
+- Maximal reuse by distributions and vendors; patent protection via the
+  Apache-2.0 option; kernel/BPF code compatible with upstream.
+- Two licence families in one repository → REUSE tooling and reviews needed.
+- Until accepted, the repository has no licence (all rights reserved by
+  default); this blocks external contributions to code, not to discussion.
+
+## Validation / revisit triggers
+
+Legal review outcome; foundation entry requirements; EU CRA steward status
+[D-89][D-90][D-91].
