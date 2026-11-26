@@ -16,13 +16,10 @@ existing open-source components.
 
 ## 2. Current phase
 
-**Phase 0 — Research & Architecture (incl. 0.1 review).** No distribution, no production code.
-Next: Phase 1.1 Measurement Foundation, specified in
-`docs/architecture/phase1.1-measurement-foundation.md` (starts once its
-prerequisites are met).
-Allowed outputs: research notes, architecture documents, ADRs, plans,
-benchmark *designs*. Read `docs/CURRENT.md` for the live state before doing
-anything else.
+**Phase 1 — Measure.** Phase 1.1 (measurement foundation, `python/`) is
+implemented and unit-tested; Phase 1.2 (first hardware run) is next. No
+distribution image, no tuning/knob application yet (that is Phase 2).
+Read `docs/CURRENT.md` for the live state before doing anything else.
 
 ## 3. Non-negotiable principles (see ADR-0004)
 
@@ -83,7 +80,19 @@ docs/research/       evidence-graded research notes (cold)
 docs/architecture/   target architecture, methodology, test plans
 docs/state/          status, roadmap, risks, open questions, hypotheses
 docs/adr/            architecture decision records (NNNN-title.md)
+docs/runbooks/       operator runbooks (hardware runs)
+schemas/             canonical JSON Schemas (language-neutral contracts) + fixtures
+python/              ailx-bench measurement harness (MIT)
+helpers/             small privileged helpers (MIT, stdlib only)
+workloads/           workload manifests and campaign specs
+tools/               development tools (e.g. random-weight test model)
 ```
+
+Code rules: every source file starts with an SPDX header (`MIT` for own
+components; `GPL-2.0-only` only in separate directories for kernel/GPL-derived
+code, ADR-0009). Before pushing: `ruff check`, `ruff format --check`, `mypy`,
+`pytest` in `python/`. Simulated results must stay labeled `simulated`;
+missing hardware or permissions are reported, never faked.
 
 ## 7. Decisions (ADRs)
 
@@ -131,4 +140,4 @@ When implementation starts:
 - Add telemetry, auto-updaters that phone home, or cloud requirements.
 - Add knobs that reduce security or quality as defaults.
 - Expand the hot context with research detail.
-- Start building the distribution while Phase 0 is active.
+- Start building the distribution image before the base-distro ADR (ADR-0005).

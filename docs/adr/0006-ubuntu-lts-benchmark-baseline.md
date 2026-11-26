@@ -1,6 +1,6 @@
 # ADR-0006: Ubuntu LTS as the benchmark baseline
 
-> Status: Proposed · Date: 2026-11-26 · Deciders: maintainers (pending; baseline choice given in the project brief)
+> Status: **Accepted** (maintainer decision 2026-11-26, including the Phase 0.1 review amendments below) · Date: 2026-11-26 · Deciders: maintainers
 
 ## Context
 
@@ -11,7 +11,7 @@ Canonical-signed NVIDIA kernel modules [D-12][D-13][D-15][D-47][L-12][L-15].
 The current LTS is 26.04 "Resolute Raccoon" with Linux 7.0 [D-02]. A baseline
 must be precisely defined to be reproducible.
 
-## Decision (proposed)
+## Decision
 
 1. **Baseline = current Ubuntu LTS, stock** (26.04 LTS at the time of writing):
    default installer choices, archive kernel (`generic` flavour), NVIDIA
@@ -54,3 +54,7 @@ Amendments proposed by the review (`docs/research/08-architecture-review.md` §3
 2. The fingerprint records active tuning daemons (power-profiles-daemon,
    TuneD, irqbalance, thermald) in every arm; arm U2 replaces the stock power
    daemon by TuneD explicitly.
+
+## Maintainer decision (2026-11-26)
+
+Accepted together with the Phase 0.1 review amendments above; the amendments are part of the decision.

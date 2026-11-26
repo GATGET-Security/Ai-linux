@@ -1,6 +1,6 @@
 # ADR-0007: Abstract management, not compute — accelerator provider plugins
 
-> Status: Proposed · Date: 2026-11-26 · Deciders: maintainers (pending)
+> Status: **Accepted** (maintainer decision 2026-11-26, including the Phase 0.1 review amendments below) · Date: 2026-11-26 · Deciders: maintainers
 
 ## Context
 
@@ -29,7 +29,7 @@ selection but not OS-level tuning or rigorous measurement
 3. **Provider plugins for management + pluggable runtime bundles for compute** —
    moderate effort; leverages upstream; risk of integration churn.
 
-## Decision (proposed)
+## Decision
 
 Option 3. AI Linux defines:
 
@@ -69,3 +69,7 @@ Amendments proposed by the review (`docs/research/08-architecture-review.md` §3
    (`docs/architecture/hardware-abstraction.md`).
 2. Before freezing the provider schema, evaluate CDI/DRA-style device
    descriptions for reuse (review T8).
+
+## Maintainer decision (2026-11-26)
+
+Accepted together with the Phase 0.1 review amendments above; the amendments are part of the decision.

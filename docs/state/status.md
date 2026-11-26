@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-11-26 · Phase: **0.1 — Independent architecture review complete; awaiting maintainer decisions before Phase 1.1**
+> Last updated: 2026-11-26 · Phase: **1.1 — Measurement foundation implemented (CPU-only CI); Phase 1.2 hardware run next**
 
 ## Deliverables of Phase 0
 
@@ -18,11 +18,23 @@
 | Opportunity matrix (prioritized) | `docs/research/07-opportunity-matrix.md` | done |
 | Architecture (overview, HW abstraction, self-optimization, benchmarking, test plan, delivery, community) | `docs/architecture/` | done (proposal) |
 | ADRs 0001–0004 | `docs/adr/` | Accepted |
-| ADRs 0005–0010 | `docs/adr/` | **Proposed — need maintainer review** |
+| ADRs 0005–0008, 0010 | `docs/adr/` | Accepted (maintainer decision 2026-11-26) |
+| ADR-0009 | `docs/adr/` | Accepted as amended: MIT own components, GPL-2.0-only kernel/derived |
 | Hypotheses (53), risks (18), open questions, roadmap | `docs/state/` | done |
 | **Phase 0.1 review** (source verification, corrections, gaps, ADR assessment) | `docs/research/08-architecture-review.md` | done |
 | **Phase 1.1 executable specification** | `docs/architecture/phase1.1-measurement-foundation.md` | ready (blocked by prerequisites P1–P3) |
 | Register updates after review: 57 hypotheses, 22 risks | `docs/state/` | done |
+
+## Phase 1.1 outcome
+
+- All 8 work packages implemented (`docs/architecture/phase1.1-measurement-foundation.md` §8).
+- Tests: schema conformance, probe fixture trees, statistics simulations
+  (A/A false-claim rate, 5% effect power, RMIT vs sequential drift), telemetry,
+  RAPL helper, store integrity, CLI end-to-end; tiny-model llama-bench campaign
+  and KLD gate end-to-end with llama.cpp 98cc730 (CPU, random-weight test model).
+- Two methodology corrections found by the own end-to-end runs (noise-floor
+  definition, conservative power analysis).
+- Validated on hardware: **nothing yet** (ledger rows VL-1.1-01 … 07 `hw-queued`).
 
 ## Phase 0.1 review outcome
 

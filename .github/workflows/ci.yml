@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: MIT
+# CPU-only CI for the Phase 1.1 measurement foundation. No GPU, no hardware claims.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  LLAMA_CPP_COMMIT: 98cc730cc8f8f798cf83d22c23a072c205b0e510
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python: ["3.12", "3.13"]
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: python -m pip install -e ".[dev]" cyclonedx-bom
+      - name: Lint
+        run: |
+          ruff check src tests ../tools ../helpers
+          ruff format --check src tests ../tools ../helpers
+      - name: Type check (mypy strict)
+        run: mypy
+      - name: Tests (schemas, probe, statistics incl. A/A + 5% simulations, telemetry, store, CLI e2e)
+        run: python -m pytest -q -m "not llamacpp"
+      - name: SBOM of the Python environment
+        if: matrix.python == '3.13'
+        run: cyclonedx-py environment -o sbom-python.cdx.json
+      - uses: actions/upload-artifact@v4
+        if: matrix.python == '3.13'
+        with:
+          name: sbom-python
+          path: python/sbom-python.cdx.json
+
+  e2e-llamacpp:
+    runs-on: ubuntu-24.04
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Cache llama.cpp build
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: llama.cpp/build/bin
+          key: llama-cpp-cpu-${{ env.LLAMA_CPP_COMMIT }}
+      - name: Fetch llama.cpp (pinned)
+        run: |
+          git init llama.cpp && cd llama.cpp
+          git remote add origin https://github.com/ggml-org/llama.cpp
+          git fetch --depth 1 origin "$LLAMA_CPP_COMMIT" && git checkout FETCH_HEAD
+      - name: Build llama-bench / llama-perplexity / llama-quantize (CPU)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          cmake -S llama.cpp -B llama.cpp/build -DGGML_NATIVE=OFF -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF \
+            -DLLAMA_BUILD_SERVER=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake --build llama.cpp/build -j4 --target llama-bench llama-perplexity llama-quantize
+      - name: Install harness
+        run: python -m pip install -e "python[dev]"
+      - name: Create tiny random-weight test model (not a real model)
+        run: |
+          mkdir -p tiny
+          python tools/make_tiny_gguf.py --vocab llama.cpp/models/ggml-vocab-llama-spm.gguf --out tiny/tiny-f16.gguf
+          llama.cpp/build/bin/llama-quantize tiny/tiny-f16.gguf tiny/tiny-q4_0.gguf q4_0
+          python -c "import random; random.seed(1); w='the a of to and in is it that for on with as was by at be this from or an are'.split(); print(' '.join(random.choice(w) for _ in range(6000)))" > tiny/corpus.txt
+      - name: End-to-end (tiny-model campaign + KLD gate)
+        env:
+          AILX_LLAMA_CPP_BIN: ${{ github.workspace }}/llama.cpp/build/bin
+          AILX_LLAMA_BENCH: ${{ github.workspace }}/llama.cpp/build/bin/llama-bench
+          AILX_TINY_DIR: ${{ github.workspace }}/tiny
+          AILX_TINY_MODEL: ${{ github.workspace }}/tiny/tiny-f16.gguf
+        working-directory: python
+        run: python -m pytest -q -m llamacpp -rs

@@ -1,6 +1,6 @@
 # ADR-0009: Licensing set and contribution model
 
-> Status: Proposed — **requires legal review before acceptance** · Date: 2026-11-26 · Deciders: maintainers (pending)
+> Status: **Accepted as amended by maintainer decision 2026-11-26** (licence split below); detailed legal review remains open before any public release · Date: 2026-11-26 · Deciders: maintainers
 
 ## Context
 
@@ -20,7 +20,7 @@ Research (`docs/research/05-base-distributions-and-licensing.md` Part 2) found:
   [D-61][D-63][D-64][D-70][D-71].
 - Single-vendor governance is a risk (Intel's abrupt end of Clear Linux) [L-26].
 
-## Decision (proposed)
+## Original proposal (superseded in part by the maintainer decision below)
 
 | Artifact | Licence |
 |----------|---------|
@@ -68,3 +68,19 @@ Amendments proposed by the review (`docs/research/08-architecture-review.md` §3
    licence boundary.
 2. Model files and third-party model packages (OCI/ModelPack) keep their own
    licences; the model manifest records them.
+
+## Maintainer decision (2026-11-26)
+
+| Artifact | Licence | Notes |
+|----------|---------|-------|
+| Own, independent platform components (harness, schemas, helpers, tools, workloads, recipes) | **MIT** | Replaces the proposed `Apache-2.0 OR MIT`; SPDX headers in every source file; root `LICENSE` |
+| Kernel code and components derived from GPL code (kernel patches/modules, sched_ext BPF schedulers, userspace derived from `sched-ext/scx`) | **GPL-2.0-only**, where licence law requires it | Kept in separate directories with their own `LICENSE` |
+| Third-party components | **Unchanged** (their own licences) | Fetched on demand; never relicensed or redistributed by default |
+
+Still open (not decided by the maintainers): documentation licence (proposal
+CC-BY-4.0), benchmark-data licence, DCO enforcement, and the detailed legal
+review before a public release. Overview: `LICENSING.md`.
+
+Consequence of choosing MIT over `Apache-2.0 OR MIT`: no explicit patent
+grant for own code; GPLv2 compatibility is preserved. Revisit if patent
+concerns arise during legal review.

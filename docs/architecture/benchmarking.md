@@ -157,7 +157,9 @@ steady-state criterion before the measurement window; runs that throttle are
 flagged.
 
 **Significance policy (initial, to be calibrated — H-S-03)**: a difference is
-*claimed* only if the CI lower bound exceeds max(2%, 2 × A/A noise floor). Smaller
+*claimed* only if the CI lower bound exceeds max(2%, 2 × A/A noise floor), where the
+noise floor is the absolute A/A effect point estimate (systematic offset between
+identical arms; definition revised in Phase 1.1, see `phase1.1-measurement-foundation.md` §8). Smaller
 or inconclusive results are reported as "no detectable difference" — which is a
 legitimate, publishable outcome.
 

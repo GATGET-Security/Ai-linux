@@ -10,10 +10,10 @@ answerable by reading primary sources once network access allows ·
 
 | # | Question | Context |
 |---|----------|---------|
-| A1 | Accept, amend or reject the proposed ADRs 0005–0010 | `docs/adr/` |
-| A2 | Licence set (ADR-0009) — commission legal review; until then the repo has no licence | [LEGAL][DECIDE] |
+| A1 | ~~Accept ADRs 0005–0010~~ **Decided 2026-11-26** (0005–0008, 0010 accepted; 0009 amended) | done |
+| A2 | Licence set: **MIT / GPL-2.0-only decided** (ADR-0009); open: docs licence, data licence, DCO, legal review before public release | [LEGAL][DECIDE] |
 | A3 | Project name/trademark ("AI Linux" is a working name) | [LEGAL][DECIDE] |
-| A4 | Budget for measurement hardware: logging wall meter (ideally SPEC PTDaemon-supported), optional inline GPU power measurement, ambient sensor | [DECIDE]; needed for H-S-01, H-S-07 |
+| A4 | (Not a Phase 1.1 blocker per maintainers) Budget for measurement hardware: logging wall meter (ideally SPEC PTDaemon-supported), optional inline GPU power measurement, ambient sensor | [DECIDE]; needed for H-S-01, H-S-07 |
 | A5 | Implementation language for performance-critical/privileged components (daemon, samplers) — deferred; contracts are language-neutral | [DECIDE] Phase 2 |
 | A6 | Communication platform and Code of Conduct version | [DECIDE] |
 | A7 | ~~Phase 1 language~~ **Decided: Python for benchmark infrastructure; contracts language-neutral** (`phase1.1-measurement-foundation.md`) | done |

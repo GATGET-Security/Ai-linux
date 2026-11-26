@@ -1,6 +1,6 @@
 # ADR-0005: Layer-first delivery; base distribution for an own image decided by a measured bake-off
 
-> Status: Proposed · Date: 2026-11-26 · Deciders: maintainers (pending)
+> Status: **Accepted** (maintainer decision 2026-11-26, including the Phase 0.1 review amendments below) · Date: 2026-11-26 · Deciders: maintainers
 
 ## Context
 
@@ -33,7 +33,7 @@ config, signed modules, atomic rollback of the whole stack) eventually do.
 3. **Never build an image** — cannot deliver kernel-, driver- and
    rollback-level guarantees.
 
-## Decision (proposed)
+## Decision
 
 1. **Phases 1–2: layer mode.** Primary development and baseline host:
    Ubuntu 26.04 LTS (identical to the benchmark baseline, ADR-0006). Secondary
@@ -85,3 +85,7 @@ Amendments proposed by the review (`docs/research/08-architecture-review.md` §3
    state) and disables dependent knobs instead of failing [V-01][V-04][V-05].
 3. The vision remains a full compute platform; layer mode is the delivery
    vehicle, not the product boundary.
+
+## Maintainer decision (2026-11-26)
+
+Accepted together with the Phase 0.1 review amendments above; the amendments are part of the decision.

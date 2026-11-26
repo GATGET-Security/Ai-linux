@@ -65,6 +65,29 @@ def _stop_server(proc: subprocess.Popen[bytes]) -> None:
             os.killpg(proc.pid, signal.SIGKILL)
 
 
+ENERGY_METRICS = {"gpu_energy_j": "gpu_total_j", "wall_energy_j": "wall_j"}
+
+
+def _energy_metrics(workload: Doc, energy: Doc) -> dict[str, dict[str, Any]]:
+    """Expose energy of the measure window as campaign metrics when the workload declares them.
+
+    With a fixed amount of work per run (fixed token counts), energy per run is proportional
+    to energy per token. Simulated meters never produce a metric.
+    """
+    wanted = {m["name"] for m in workload["metrics"]}
+    out: dict[str, dict[str, Any]] = {}
+    for metric, key in ENERGY_METRICS.items():
+        if metric in wanted and isinstance(energy.get(key), int | float):
+            if key == "wall_j" and energy.get("wall_simulated"):
+                continue
+            out[metric] = {"value": float(energy[key]), "unit": "J"}
+    if "cpu_energy_j" in wanted and energy.get("rapl_j"):
+        pkg = [v for k, v in energy["rapl_j"].items() if "package" in k]
+        if pkg:
+            out["cpu_energy_j"] = {"value": float(sum(pkg)), "unit": "J"}
+    return out
+
+
 def _stability_events(tele_raw: dict[str, Any]) -> list[Doc]:
     events: list[Doc] = []
     for name, st in tele_raw["streams"].items():
@@ -149,6 +172,10 @@ def execute_run(
             sup.stop()
     tele = sup.summary("measure")
     raw = sup.raw()
+    energy = energy_summary(tele)
+    metrics = dict(parsed.metrics) if (parsed and status == "ok") else {}
+    if metrics:
+        metrics.update(_energy_metrics(workload, energy))
     if status == "ok" and sup.failed():
         status, detail = "telemetry-failed", f"sampler(s) died during the run: {', '.join(sup.failed())}"
     simulated_tele = [n for n, s in tele.items() if s.get("available") and s.get("simulated")]
@@ -168,14 +195,14 @@ def execute_run(
         "duration_s": time.monotonic() - t0,
         "status": status,
         "status_detail": detail,
-        "metrics": parsed.metrics if (parsed and status == "ok") else {},
+        "metrics": metrics,
         "tool": {
             "name": parsed.tool_name if parsed else workload["adapter"],
             "version": parsed.tool_version if parsed else None,
             "command": cmd,
         },
         "telemetry": tele,
-        "energy": energy_summary(tele),
+        "energy": energy,
         "stability_events": _stability_events(raw),
         "quality": None,
         "raw_ref": store.put_json_blob({"telemetry": raw, "notes": notes}),

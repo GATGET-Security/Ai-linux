@@ -4,10 +4,11 @@
 local AI workloads** — LLMs, image/video/audio generation, embeddings,
 autonomous agents, training and fine-tuning.
 
-> **Status: Phase 0 — Research & Architecture.** There is no distribution, no
-> installer and no production code yet. This repository currently contains
-> research, architecture proposals, decision records and plans. Nothing here
-> has been validated on hardware yet.
+> **Status: Phase 1.1 — Measurement foundation implemented.** The benchmark
+> harness `ailx-bench` (Python, `python/`) exists and is tested in CPU-only CI;
+> **nothing has been measured on the reference hardware yet**. There is no
+> distribution image. Next: the first hardware run
+> ([runbook](docs/runbooks/first-hardware-run.md)).
 
 ## Why
 
@@ -79,9 +80,18 @@ pull requests against the documents: corrections with better sources, new
 evidence, counter-evidence, and hardware you could benchmark on in Phase 1.
 Agents and humans follow the same rules: see [AGENTS.md](AGENTS.md).
 
+## Quick start (harness)
+
+```bash
+cd python && pip install -e ".[dev]"
+ailx-bench probe                       # hardware profile + fingerprint
+ailx-bench campaign all ../workloads/campaigns/synthetic-aa.json --report aa.md   # simulated self-test
+```
+
 ## License
 
-Not yet decided. A license set is proposed in
-[ADR-0009](docs/adr/0009-licensing-and-contribution-model.md) and awaits
-maintainer approval. Until a license is added, no rights beyond viewing are
-granted.
+Own platform components: **MIT** (`LICENSE`). Kernel code and GPL-derived
+components (none yet): **GPL-2.0-only** in separate directories. Third-party
+components keep their licences. Documentation licence and a detailed legal
+review are still open — see [LICENSING.md](LICENSING.md) and
+[ADR-0009](docs/adr/0009-licensing-and-contribution-model.md).

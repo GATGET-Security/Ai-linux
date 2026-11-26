@@ -1,0 +1,21 @@
+{
+  "schema": "ailx.workload/v0",
+  "name": "llama-bench-gpu-decode",
+  "version": 1,
+  "type": "llm-single",
+  "description": "Single-user decode/prefill on the GPU (W-LLM-1 class). Model chosen by the operator via $AILX_MODEL; record its licence and precision.",
+  "adapter": "llama-bench",
+  "params": {"n_prompt": 512, "n_gen": 128, "repetitions": 5, "n_gpu_layers": 99, "flash_attn": "on"},
+  "model": {"path": "$AILX_MODEL", "precision": null, "lossy_vs_reference": null},
+  "runtime": {"binary": "$AILX_LLAMA_BENCH"},
+  "output_len_policy": "fixed",
+  "metrics": [
+    {"name": "tg_tokens_per_s", "unit": "tokens/s", "better": "higher"},
+    {"name": "pp_tokens_per_s", "unit": "tokens/s", "better": "higher"},
+    {"name": "gpu_energy_j", "unit": "J", "better": "lower"},
+    {"name": "cpu_energy_j", "unit": "J", "better": "lower"}
+  ],
+  "warmup_runs": 2,
+  "timeout_s": 1800,
+  "telemetry": ["psi", "cpu", "nvml", "rapl"]
+}

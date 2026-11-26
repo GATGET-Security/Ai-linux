@@ -1,6 +1,6 @@
 # ADR-0010: Build-heavy / deferred-validation development strategy
 
-> Status: Proposed · Date: 2026-11-26 · Deciders: maintainers (pending)
+> Status: **Accepted** (maintainer decision 2026-11-26, including the Phase 0.1 review amendments below) · Date: 2026-11-26 · Deciders: maintainers
 
 ## Context
 
@@ -23,7 +23,7 @@
    from hardware validation; queue hardware validation in batches; never
    treat unvalidated work as proven.
 
-## Decision (proposed)
+## Decision
 
 Adopt option 3:
 
@@ -67,3 +67,7 @@ Amendments proposed by the review (`docs/research/08-architecture-review.md` §3
 1. Validation-ledger rows record the **harness version** and the **A/A
    calibration ID** used; a harness bug fix that affects metrics re-opens the
    affected rows (`hw-queued`).
+
+## Maintainer decision (2026-11-26)
+
+Accepted together with the Phase 0.1 review amendments above; the amendments are part of the decision.

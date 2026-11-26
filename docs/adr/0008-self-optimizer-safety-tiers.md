@@ -1,6 +1,6 @@
 # ADR-0008: Self-optimizer safety tiers and adoption rules
 
-> Status: Proposed · Date: 2026-11-26 · Deciders: maintainers (pending)
+> Status: **Accepted** (maintainer decision 2026-11-26, including the Phase 0.1 review amendments below) · Date: 2026-11-26 · Deciders: maintainers
 
 ## Context
 
@@ -20,7 +20,7 @@ auto-tuning, rollback mechanisms and rigorous benchmarking:
 3. **Registry-constrained, tiered auto-tuning with statistical adoption rules
    and automatic rollback.**
 
-## Decision (proposed)
+## Decision
 
 Option 3, as specified in `docs/architecture/self-optimization.md`:
 
@@ -63,3 +63,7 @@ Amendments proposed by the review (`docs/research/08-architecture-review.md` §3
 4. Knobs that require lockdown to be off (debugfs/MSR writes, e.g.
    `SCHED_CACHE` tunables [V-01]) are `explicit-opt-in` and never auto-applied.
 Details: `docs/architecture/self-optimization.md`.
+
+## Maintainer decision (2026-11-26)
+
+Accepted together with the Phase 0.1 review amendments above; the amendments are part of the decision.

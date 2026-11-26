@@ -1,6 +1,6 @@
 # Phase 1.1 — Measurement Foundation: Development Specification
 
-> Status: Ready for implementation once the prerequisites in §1 are met · Last updated: 2026-11-26 · Related: `benchmarking.md`, `hardware-test-plan.md`, ADR-0003, ADR-0006, ADR-0008, ADR-0010
+> Status: **Implemented (build-heavy; unit-tested in CPU-only CI; hardware validation pending)** — see §8 · Last updated: 2026-11-26 · Related: `benchmarking.md`, `hardware-test-plan.md`, ADR-0003, ADR-0006, ADR-0008, ADR-0010
 
 ## Summary
 
@@ -253,3 +253,52 @@ WP1 schemas ──► WP2 probe ──┐
 ```
 
 WP4 can start in parallel with WP2 (it only needs the result schema).
+
+## 8. Implementation status (2026-11-26)
+
+Prerequisites P1–P3 were resolved by maintainer decision (MIT for own
+components, ADR-0009; ADRs 0005–0008/0010 accepted; Python for the harness).
+
+| WP | Delivered | Location |
+|----|-----------|----------|
+| WP1 | 8 canonical schemas (incl. `analysis.v0`) + conformance corpus (12 valid, 12 invalid) | `schemas/` |
+| WP2 | Hardware profile + environment fingerprint, fixture-tree tests (2-LLC X3D-like, single-LLC VM) | `python/src/ailx/probe/` |
+| WP3 | Runner (phases, timeouts, server lifecycle, operator hooks), adapters `llama-bench`, `vllm bench serve`, synthetic | `python/src/ailx/runner.py`, `adapters/`, `workloads/` |
+| WP4 | RMIT, BCa bootstrap, Mann–Whitney, Hodges–Lehmann, BH-FDR, RSD stop, conservative power analysis, A/A calibration | `python/src/ailx/stats/`, `campaign.py` |
+| WP5 | Sampler protocol + supervisor; samplers PSI, CPU, NVML, RAPL client, fake meter; privileged RAPL helper | `python/src/ailx/telemetry/`, `helpers/rapl-collector/` |
+| WP6 | KLD gate with five verifiable prerequisites (logits hash, corpus hash, vocabulary hash, ctx/chunks, llama.cpp build) and A/A floor | `python/src/ailx/quality/kld.py` |
+| WP7 | Content-addressed store (canonical JSON + zstd blobs + SQLite index, tamper detection), Markdown reports, claim validator | `python/src/ailx/store/`, `report/` |
+| WP8 | `ailx-bench` CLI, GitHub Actions CI (lint, mypy strict, tests, SBOM, pinned llama.cpp e2e), runbook | `.github/workflows/ci.yml`, `docs/runbooks/first-hardware-run.md` |
+
+### Deviations from this specification (deliberate)
+
+1. **Noise floor definition.** The first end-to-end run showed that using the
+   A/A *CI bound* as noise floor, doubled by the decision rule, makes a real
+   5% effect undetectable at CV 2% (threshold ≈6%). The floor is now the
+   **absolute A/A point estimate** (systematic offset between identical arms);
+   sampling noise is already carried by each campaign's own CI. Run-level CV
+   is stored separately for power analysis.
+2. **Power analysis is conservative.** An independent re-check showed the
+   plain "simulated rate ≥ 0.8" search under-sizes campaigns at small
+   simulation counts; the target now includes a 1.5-SE Monte-Carlo margin.
+3. **GuideLLM adapter deferred** (vLLM's own `bench serve` covers serving
+   metrics for the first hardware block). **HTML reports deferred** (Markdown
+   only).
+4. **Energy metrics** (`gpu_energy_j`, `cpu_energy_j`, `wall_energy_j`) were
+   added as optional campaign metrics so E1 can be analysed directly; they
+   cover the whole tool process (incl. model load), and simulated meters never
+   produce a metric.
+5. **Warm-up runs** are executed per arm before the schedule and not stored as
+   results.
+6. **OOM attribution**: SIGKILL is reported as "possibly OOM, not verified"
+   (no cgroup-level OOM evidence yet); the `oom-killed` status is reserved for
+   verified cases.
+
+### What is validated where
+
+| Claim | Evidence | State |
+|-------|----------|-------|
+| A/A false-claim rate ≤ α+0.02; RMIT protects against drift; 5% effect detected at the computed n | Simulation tests (`tests/test_stats.py`) | unit-tested (simulated) |
+| Synthetic A/A + 5% campaigns decide correctly end-to-end, reports pass the claim check | `tests/test_e2e.py` | unit-tested (simulated) |
+| Tiny-model llama-bench campaign and KLD gate run end-to-end; lossy q4_0 fails, identical f16 passes, changed corpus fails prerequisites | `tests/test_e2e.py`, `tests/test_quality.py` (CI job `e2e-llamacpp`) | unit-tested (CPU, random-weight test model) |
+| Anything about the RTX 4090 / 7950X3D / Proxmox server | — | **hw-queued** (`docs/state/validation-ledger.md`) |
