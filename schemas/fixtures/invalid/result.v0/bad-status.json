@@ -1,0 +1,128 @@
+{
+  "arm_id": "faster5",
+  "block": 0,
+  "campaign_id": "cmp-590e952754c3a8cf6af0cb9897faf4900f3a3b93b7e203e7083391d77df28f30",
+  "duration_s": 0.5538804200000413,
+  "energy": {
+    "ground_truth": "none"
+  },
+  "fingerprint_id": "env-2ae8fb561b8b0df2cf7b217e44a8150a57190dbe339a2a785ae2ce61ac91f871",
+  "hardware_profile_id": "hwp-cca951b8c4e3128daa39705d7b032d9f953a51d39257ee7a8dd9423fdedb4e87",
+  "id": "res-41dc687681ad9f38c6d16518166e2b99b700ad184e9f51fe99e6a2b160052635",
+  "logs_ref": "sha256:fb53f8d510de5934066eee1a3091c0d4b4e88981ce9041ac72649ff3a3926b6a",
+  "measurement_kind": "simulated",
+  "metrics": {
+    "duration_s": {
+      "unit": "s",
+      "value": 0.9920559097049334
+    },
+    "work_rate": {
+      "unit": "units/s",
+      "value": 50.4003852110225
+    }
+  },
+  "order_index": 0,
+  "quality": null,
+  "raw_ref": "sha256:304f41a026dae84418dc5eb9dcaa32ee66781840c6929595e156521f720e8a2f",
+  "schema": "ailx.result/v0",
+  "stability_events": [],
+  "started_at": "2026-11-26T19:27:23.238836Z",
+  "status": "great",
+  "status_detail": null,
+  "telemetry": {
+    "psi": {
+      "available": true,
+      "exited_early": false,
+      "metrics": {
+        "cpu.full.avg10": {
+          "mean": null,
+          "n": 0,
+          "unit": "%"
+        },
+        "cpu.full.total_us": {
+          "delta": 0,
+          "duration_s": 0.50010897,
+          "n": 2,
+          "unit": "us"
+        },
+        "cpu.some.avg10": {
+          "mean": null,
+          "n": 0,
+          "unit": "%"
+        },
+        "cpu.some.total_us": {
+          "delta": 1243,
+          "duration_s": 0.50010897,
+          "n": 2,
+          "unit": "us"
+        },
+        "io.full.avg10": {
+          "mean": null,
+          "n": 0,
+          "unit": "%"
+        },
+        "io.full.total_us": {
+          "delta": 5,
+          "duration_s": 0.50010897,
+          "n": 2,
+          "unit": "us"
+        },
+        "io.some.avg10": {
+          "mean": null,
+          "n": 0,
+          "unit": "%"
+        },
+        "io.some.total_us": {
+          "delta": 6,
+          "duration_s": 0.50010897,
+          "n": 2,
+          "unit": "us"
+        },
+        "memory.full.avg10": {
+          "mean": null,
+          "n": 0,
+          "unit": "%"
+        },
+        "memory.full.total_us": {
+          "delta": 0,
+          "duration_s": 0.50010897,
+          "n": 2,
+          "unit": "us"
+        },
+        "memory.some.avg10": {
+          "mean": null,
+          "n": 0,
+          "unit": "%"
+        },
+        "memory.some.total_us": {
+          "delta": 0,
+          "duration_s": 0.50010897,
+          "n": 2,
+          "unit": "us"
+        }
+      },
+      "simulated": false
+    }
+  },
+  "tool": {
+    "command": [
+      "/home/user/Ai-linux/python/.venv/bin/python",
+      "-m",
+      "ailx.workloads.synthetic",
+      "--mode",
+      "simulated",
+      "--seed",
+      "3",
+      "--order-index",
+      "0",
+      "--slowdown",
+      "0.952381",
+      "--noise-cv",
+      "0.02"
+    ],
+    "name": "ailx-synthetic",
+    "version": "0.1.0"
+  },
+  "workload_name": "synthetic-simulated",
+  "workload_sha256": "0d4a6149ba4338f4562a03caa88fa973f3b3df11038518715e56decb6a6ca42f"
+}

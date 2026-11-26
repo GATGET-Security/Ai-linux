@@ -1,0 +1,16 @@
+{
+  "available": true,
+  "clock": "CLOCK_MONOTONIC",
+  "interval_s": 0.1,
+  "kind": "header",
+  "metrics": [
+    {
+      "name": "gpu0.energy_mj",
+      "type": "counter",
+      "unit": "mJ"
+    }
+  ],
+  "sampler": "nvml",
+  "schema": "ailx.sample-stream/v0",
+  "version": "0.1.0"
+}

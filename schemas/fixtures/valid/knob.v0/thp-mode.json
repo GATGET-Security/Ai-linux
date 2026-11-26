@@ -1,0 +1,24 @@
+{
+  "description": "Transparent huge pages mode",
+  "domain": {
+    "enum": [
+      "always",
+      "madvise",
+      "never"
+    ]
+  },
+  "evidence": [
+    "K-32"
+  ],
+  "id": "kernel.mm.thp.enabled",
+  "level": "kernel-runtime",
+  "mechanism": {
+    "sysfs": "/sys/kernel/mm/transparent_hugepage/enabled"
+  },
+  "quality_class": "n/a",
+  "reversibility": "runtime",
+  "schema": "ailx.knob/v0",
+  "security_class": "allowed",
+  "tier": "T1",
+  "validation_status": "authored"
+}

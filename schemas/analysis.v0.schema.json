@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/analysis.v0.schema.json",
+  "title": "AI Linux campaign analysis v0",
+  "description": "Statistical analysis of one campaign. Numbers in reports must cite this ID and the result IDs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "campaign_id",
+    "created_at",
+    "purpose",
+    "measurement_kind",
+    "result_ids",
+    "excluded",
+    "comparisons",
+    "calibration",
+    "warnings",
+    "decision_rule",
+    "harness_version"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ailx.analysis/v0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^ana-[0-9a-f]{64}$"
+    },
+    "campaign_id": {
+      "type": "string",
+      "pattern": "^cmp-[0-9a-f]{64}$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "purpose": {
+      "enum": [
+        "aa-calibration",
+        "confirmatory",
+        "screening"
+      ]
+    },
+    "measurement_kind": {
+      "enum": [
+        "hardware",
+        "simulated",
+        "mixed"
+      ]
+    },
+    "result_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^res-[0-9a-f]{64}$"
+      }
+    },
+    "excluded": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "arm_summaries": {
+      "type": "object"
+    },
+    "comparisons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "arm",
+          "role",
+          "metric",
+          "verdict"
+        ],
+        "properties": {
+          "arm": {
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "primary",
+              "guard"
+            ]
+          },
+          "metric": {
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "improvement",
+              "regression",
+              "significant-below-threshold",
+              "equivalent-within-margin",
+              "no-detectable-difference",
+              "insufficient-data"
+            ]
+          }
+        }
+      }
+    },
+    "calibration": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "For aa-calibration campaigns: metric -> noise floor (relative)"
+    },
+    "fingerprint_differences": {
+      "type": "object"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "decision_rule": {
+      "type": "string"
+    },
+    "harness_version": {
+      "type": "string"
+    }
+  }
+}

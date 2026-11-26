@@ -1,0 +1,350 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/hardware-profile.v0.schema.json",
+  "title": "AI Linux hardware profile v0",
+  "description": "Static description of a machine's compute-relevant hardware. Collected read-only.",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ailx.hardware-profile/v0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^hwp-[0-9a-f]{64}$"
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cpu": {
+      "type": "object",
+      "required": [
+        "vendor",
+        "model",
+        "logical_cpus",
+        "smt_active",
+        "llc_domains",
+        "isa_flags"
+      ],
+      "properties": {
+        "vendor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sockets": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "logical_cpus": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "smt_active": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "llc_domains": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "cpus",
+              "size_bytes"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "cpus": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "size_bytes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "level": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "isa_flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "memory": {
+      "type": "object",
+      "required": [
+        "total_bytes",
+        "numa_nodes"
+      ],
+      "properties": {
+        "total_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "numa_nodes": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "accelerators": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/accelerator"
+      }
+    },
+    "storage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "transport"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "transport": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "size_bytes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "rotational": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "link": {
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "power_interfaces": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unavailable": {
+      "type": "object",
+      "description": "Field path -> reason why the value could not be collected. Values are never guessed.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "collected_at",
+    "cpu",
+    "memory",
+    "accelerators",
+    "storage",
+    "power_interfaces",
+    "unavailable"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "accelerator": {
+      "type": "object",
+      "required": [
+        "vendor",
+        "pci_address",
+        "memory_domains",
+        "driver"
+      ],
+      "properties": {
+        "vendor": {
+          "enum": [
+            "nvidia",
+            "amd",
+            "intel",
+            "other"
+          ]
+        },
+        "vendor_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "device_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "arch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pci_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "driver": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pcie": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "current_speed": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "current_width": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "max_speed": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "max_width": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "memory_domains": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/memory_domain"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "memory_domain": {
+      "type": "object",
+      "required": [
+        "kind",
+        "size_bytes",
+        "provenance"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "discrete",
+            "unified",
+            "host",
+            "unknown"
+          ]
+        },
+        "size_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "bw_theoretical_gbps": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "bw_measured": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "result ID of a measurement"
+        },
+        "limit_source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provenance": {
+          "enum": [
+            "driver",
+            "sysfs",
+            "datasheet",
+            "measured"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

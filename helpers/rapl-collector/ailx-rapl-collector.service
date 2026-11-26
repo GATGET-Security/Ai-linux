@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: MIT
+# Install: copy ailx_rapl_collector.py to /usr/local/libexec/, create group "ailx",
+# add benchmark users to it, then: systemctl enable --now ailx-rapl-collector
+[Unit]
+Description=AI Linux RAPL energy collector (read-only, rate-limited)
+Documentation=file:///usr/local/share/doc/ailx/rapl-collector/README.md
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/libexec/ailx_rapl_collector.py --socket /run/ailx-rapl/rapl.sock --group ailx
+RuntimeDirectory=ailx-rapl
+RuntimeDirectoryMode=0750
+Group=ailx
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateNetwork=yes
+RestrictAddressFamilies=AF_UNIX
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

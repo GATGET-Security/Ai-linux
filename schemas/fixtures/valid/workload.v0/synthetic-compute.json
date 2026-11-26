@@ -1,0 +1,35 @@
+{
+  "adapter": "synthetic",
+  "description": "Real timing of a small numpy kernel on whatever machine runs it (CI smoke; not an AI workload).",
+  "metrics": [
+    {
+      "better": "higher",
+      "name": "work_rate",
+      "unit": "units/s"
+    },
+    {
+      "better": "lower",
+      "name": "duration_s",
+      "unit": "s"
+    }
+  ],
+  "model": null,
+  "name": "synthetic-compute",
+  "output_len_policy": "n/a",
+  "params": {
+    "mode": "compute",
+    "work_units": 40
+  },
+  "runtime": {
+    "binary": "python"
+  },
+  "schema": "ailx.workload/v0",
+  "telemetry": [
+    "psi",
+    "cpu"
+  ],
+  "timeout_s": 120,
+  "type": "synthetic",
+  "version": 1,
+  "warmup_runs": 1
+}

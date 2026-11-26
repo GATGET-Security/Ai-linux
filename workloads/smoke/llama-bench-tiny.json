@@ -1,0 +1,19 @@
+{
+  "schema": "ailx.workload/v0",
+  "name": "llama-bench-tiny-cpu",
+  "version": 1,
+  "type": "llm-single",
+  "description": "End-to-end harness test with a tiny random-weight GGUF (tools/make_tiny_gguf.py). Not a model benchmark.",
+  "adapter": "llama-bench",
+  "params": {"n_prompt": 64, "n_gen": 16, "repetitions": 3, "threads": 2, "n_gpu_layers": 0},
+  "model": {"path": "$AILX_TINY_MODEL", "precision": "f16", "lossy_vs_reference": false},
+  "runtime": {"binary": "$AILX_LLAMA_BENCH"},
+  "output_len_policy": "fixed",
+  "metrics": [
+    {"name": "tg_tokens_per_s", "unit": "tokens/s", "better": "higher"},
+    {"name": "pp_tokens_per_s", "unit": "tokens/s", "better": "higher"}
+  ],
+  "warmup_runs": 1,
+  "timeout_s": 300,
+  "telemetry": ["psi", "cpu", "nvml", "rapl"]
+}
