@@ -35,9 +35,8 @@
   hosts were unreachable and the shared web-search budget was exhausted
   towards the end; some facts are marked **PK** (prior knowledge) or were seen
   only as search snippets (`docs/research/00-method.md`, RK-17).
-- The repository branch could not be pushed from the research session because
-  the GitHub App had no write access to the repository at that time; the
-  commits exist locally on branch `claude/ai-linux-research-architecture-1bc3lh`.
+- Push access was missing during most of the session; it was restored and the
+  branch `claude/ai-linux-research-architecture-1bc3lh` is published.
 
 ## Next
 

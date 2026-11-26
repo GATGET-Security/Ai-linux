@@ -65,8 +65,8 @@ CPU-only in CI; ready for HW-0…HW-2 in `architecture/hardware-test-plan.md`.
 - Review/accept ADRs 0005–0010; legal review for 0009 (repo has no licence yet).
 - Decide Phase 1 language (proposal: Python for harness) — open-questions A5.
 - Procure a logging wall meter (energy ground truth) — A4.
-- Grant push access for the agent (GitHub App) and wider network access for
-  verification (`research/00-method.md`).
+- Wider network access for verification of PK/snippet facts
+  (`research/00-method.md`).
 
 ## Where to look
 
