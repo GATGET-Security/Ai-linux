@@ -127,14 +127,20 @@ reused and pinned; L4 is out of scope except for reference workloads.
 | Background | fine-tuning, training, indexing | low weight / idle | `memory.high` limits | yields VRAM on demand (checkpoint/stop) |
 | System | ailx services, desktop | protected minimal share | small reserved | none |
 
-Consumer GPUs (e.g. GeForce) lack hardware partitioning such as MIG, so GPU
+Consumer GPUs (e.g. GeForce) lack hardware partitioning such as MIG, and MPS
+support on GeForce is unclear and weakens isolation [R-41][R-42], so GPU
 sharing relies on cooperative VRAM budgets, admission control and model
-swapping (details in `docs/research/04-runtimes-and-workloads.md`).
+swapping via engine sleep/unload hooks [R-06][R-58] (H-R-05). Kernel-side
+helpers exist but are fragmented (dmem cgroup, experimental drm_sched FAIR
+policy) [K-28][K-47][K-48].
 
 ## Where the innovation is (and is not)
 
 Not new (reuse): inference engines, quantization formats, drivers, schedulers
-themselves, image tooling, optimizers. New (the project's contribution):
+themselves, image tooling, optimizers. The landscape review found no project
+that combines OS-level tuning, per-machine benchmarking, quality verification
+and full-stack rollback ([L-*], `docs/research/01-landscape.md` §F5–F6).
+New (the project's contribution):
 
 1. A **closed, quality-gated, rollback-safe tuning loop** that spans kernel,
    system, GPU and runtime knobs for local AI workloads.

@@ -54,11 +54,11 @@ Rules:
 | Provider | Devices | Kernel side | Userspace/compute | Notes for Phase 1–4 |
 |----------|---------|-------------|-------------------|---------------------|
 | `cpu-x86` | AMD Zen, Intel Core/Xeon | cpufreq (amd-pstate / intel_pstate), RAPL, resctrl, sched_ext | ggml CPU, oneDNN, OpenVINO CPU, ONNX Runtime | Must model asymmetric CCDs (e.g. X3D V-Cache CCD) and ISA (AVX-512/VNNI/BF16) |
-| `nvidia` | GeForce/RTX/data-center | NVIDIA open kernel modules (preferred) or proprietary modules | NVML, CUDA, cuBLAS, optional TensorRT | First target (RTX 4090). Optional/proprietary userspace; consumer GPUs lack MIG |
-| `amd-gpu` | Radeon/Instinct | amdgpu/amdkfd (upstream) | ROCm/HIP, amd-smi, Vulkan (RADV) | Consumer ROCm support varies by generation; Vulkan as fallback |
-| `intel-gpu` | Arc/iGPU (Xe) | xe / i915 | Level Zero, oneAPI/SYCL, OpenVINO, Vulkan (ANV) | iGPU of the i5-11500 test server is a low-priority secondary target |
-| `amd-npu` | Ryzen AI XDNA | amdxdna (accel) | Ryzen AI / IRON / ONNX Runtime EP | No test hardware yet (neither test CPU has an NPU) |
-| `intel-npu` | Core Ultra NPU | ivpu (accel) | OpenVINO NPU plugin, Level Zero | No test hardware yet |
+| `nvidia` | GeForce/RTX/data-center | NVIDIA open kernel modules (preferred; Turing+, must match proprietary userspace/GSP firmware version) [D-59][D-60] | NVML, CUDA, cuBLAS, optional TensorRT | First target (RTX 4090). Optional/proprietary userspace; GeForce has no MIG; MPS status unclear [R-41][R-42] |
+| `amd-gpu` | Radeon/Instinct | amdgpu/amdkfd (upstream) | ROCm/HIP (ROCm 10, TheRock-built) [R-33][R-34], amd-smi, Vulkan (RADV) | Consumer support varies by generation; llama.cpp Vulkan reportedly beats ROCm on several consumer setups [R-74] (H-R-07) |
+| `intel-gpu` | Arc/iGPU (Xe) | xe / i915 | Level Zero, upstream PyTorch XPU, OpenVINO, Vulkan (ANV); IPEX/IPEX-LLM archived [L-27][L-28] | iGPU of the i5-11500 test server is a low-priority secondary target (support contested [H-27][H-28]) |
+| `amd-npu` | Ryzen AI XDNA | amdxdna (accel) | Lemonade/FastFlowLM, Ryzen AI SW, ONNX Runtime EP [R-37] | No test hardware yet (neither test CPU has an NPU) |
+| `intel-npu` | Core Ultra NPU | ivpu (accel) | OpenVINO NPU plugin, linux-npu-driver [R-50] | No test hardware yet |
 | `vulkan-generic` | any Vulkan 1.3 device | vendor DRM driver | ggml-vulkan etc. | Portable fallback; also a baseline for comparing vendor stacks |
 | `future-accel` | e.g. Tenstorrent, other accel-subsystem devices | DRM accel subsystem | vendor SDK | Interface designed so that new device classes need no core change |
 

@@ -53,6 +53,8 @@ anything else.
 - Record contradictory evidence instead of picking the convenient source.
 - Theoretical bounds (e.g. bandwidth math) must show the formula and be labeled
   *theoretical*.
+- Statements from prior knowledge that could not be verified against a source
+  are marked **PK**; PK statements never carry a decision on their own.
 
 ## 5. Context tiers — keep the hot context small
 

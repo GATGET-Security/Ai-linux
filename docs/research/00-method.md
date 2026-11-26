@@ -78,24 +78,36 @@ Rules:
 ## Access limitations (research environment)
 
 The research ran in a sandboxed cloud container with an allow-listed egress
-proxy. Observed on 2026-11-26:
+proxy. Observed on 2026-11-26 (consolidated from all research documents):
 
 | Channel | Status | Effect |
 |---------|--------|--------|
-| Web search API | Working | Main discovery channel; returns snippets and URLs, i.e. the content of some sources was seen only as search summaries |
-| Page fetch, `github.com` | Working | Repositories and READMEs could be read directly |
-| Page fetch, `docs.kernel.org` | **Blocked (DNS not resolvable from sandbox)** | Kernel docs had to be read via GitHub mirrors of `Documentation/` or via LWN/secondary sources |
-| Direct `curl` to `kernel.org`, `github.com` | **Blocked (proxy 403)** | No raw downloads, no cloning of external repos, no local experiments |
-| Additional hosts | See "Access limitations" in each research document | Individual documents list the hosts that failed |
+| Web search API | Working, but a **shared search budget was exhausted** towards the end of the parallel research | Later findings rely more on direct GitHub reads and, where unavoidable, on prior knowledge (marked **PK**) |
+| Page fetch / `curl`: `github.com`, `raw.githubusercontent.com` | Working | Repositories, READMEs and **kernel source/docs via the GitHub mirror of Linux master** (7.4-rc4) were read directly — most grade-A kernel evidence comes from there |
+| `api.github.com` | 403 | No API-based repository queries |
+| DNS-blocked hosts (not resolvable from the sandbox) | `docs.kernel.org`, `www.kernel.org`, `lwn.net`, `lpc.events`, `arxiv.org`, `docs.nvidia.com`, `developer.nvidia.com`, `images.nvidia.com`, `rocm.docs.amd.com`, `www.amd.com`, `huggingface.co`, `ollama.com`, `vllm.ai`, `docs.vllm.ai`, `phoronix.com`, `canonical.com`, `docs.redhat.com`, `packages.fedoraproject.org`, `systemd.io`, `thinkingmachines.ai`, `www.proxmox.com` | Content of these sources was seen only as search-engine summaries ("snippet") or substituted by mirrors/secondary sources |
+| Direct `curl` to `kernel.org` | Blocked (proxy 403) | No raw downloads from kernel.org |
 
 Consequences:
 
-- Findings that rest only on search-result summaries are marked as such
-  where it matters; their grade is capped at the grade of the underlying
-  source, but confidence is lower.
-- **No hands-on experiment** (building schedulers, running loaders) was possible.
-  All performance statements are external claims or hypotheses.
+- The **grade** of a source describes the source itself; where its content was
+  seen only via a search snippet, the research documents say so, and
+  confidence is lower than the grade suggests.
+- **PK** marks statements from the researchers' prior knowledge that could not
+  be re-verified in this session. PK statements must not carry ADR decisions
+  on their own; they are listed as verification debt (RK-17,
+  `docs/state/open-questions.md` §H).
+- **No hands-on experiment** (building schedulers, running loaders, running
+  benchmarks) was possible or attempted. All performance statements are
+  external claims, theoretical bounds or hypotheses.
 - To lift these limits for Phase 1, the environment needs access to at least:
-  `docs.kernel.org`, `kernel.org`, `lore.kernel.org`, `lwn.net`,
-  `developer.nvidia.com`, `docs.nvidia.com`, `rocm.docs.amd.com`, `arxiv.org`,
-  `huggingface.co`, `pypi.org`, plus the target hardware itself.
+  `docs.kernel.org`, `kernel.org`, `lore.kernel.org`, `lwn.net`, `arxiv.org`,
+  `docs.nvidia.com`, `developer.nvidia.com`, `rocm.docs.amd.com`,
+  `huggingface.co`, `pypi.org`, `docs.vllm.ai`, `systemd.io` — and, above all,
+  the target hardware itself.
+
+## Corpus statistics
+
+486 graded sources across documents 01–06: **A 186, B 193, C 85, D 22**.
+Grade-D sources are used only to motivate hypotheses (e.g. consumer-GPU power
+capping, H-S-01), never as the basis of a decision.

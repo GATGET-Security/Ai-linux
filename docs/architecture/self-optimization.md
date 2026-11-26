@@ -14,10 +14,13 @@
 - Changes are staged by **tier**: process-level → runtime system-level (with
   dead-man auto-revert) → boot-level (new boot entry with automatic boot
   assessment) → image-level (new generation/A-B slot).
-- The design deliberately **reuses** existing mechanisms: TuneD-style profiles,
-  sched_ext's runtime attach/detach with kernel fallback, systemd automatic
-  boot assessment, image rollback of the chosen base, and an off-the-shelf
-  optimizer library (e.g. Optuna/BoTorch) for search.
+- The design deliberately **reuses** existing mechanisms: TuneD-style profiles
+  [S-01][S-02], sched_ext's runtime attach/detach with kernel fallback
+  [S-44][K-08], systemd automatic boot assessment and greenboot-style health
+  checks [S-39][S-40], image rollback of the chosen base [S-43], an
+  off-the-shelf optimizer library (Optuna or Ax/BoTorch) for search
+  [S-22][S-24], and E-Divisive change-point detection (Apache Otava)
+  [S-53][S-55]. No existing tool closes the whole loop (`06-self-optimization-and-benchmarking.md` F1–F5).
 - Decision thresholds below (effect sizes, repetitions) are **initial policy
   choices to be calibrated in Phase 1 with A/A tests**, not evidence-backed
   constants.
@@ -78,6 +81,15 @@ The classification of concrete kernel knobs is in
 | T2 | Boot | kernel cmdline, kernel build/config, module params | new boot entry | **automatic boot assessment** (boot counting) + health checks → fall back to last good entry | optimizer proposes, user/maintainer confirms by default |
 | T3 | Image | base image, drivers, runtime bundle versions | new generation / A-B slot | image rollback of the base system | release process (maintainers) |
 
+## Operating rules borrowed from bpftune [S-04]
+
+- **Yield to the administrator**: if a managed knob was changed manually, the
+  optimizer stops managing it and reports this.
+- **Explain every change**: append-only journal entry with knob, old value,
+  new value, reason, evidence/result ID and rollback handle.
+- **Small privileged surface**: TuneD's local privilege-escalation CVEs show
+  that a root tuning daemon is attack surface [S-01] (RK-07).
+
 ## Search strategy
 
 1. **Priors**: start from the community/maintainer profile matching the
@@ -89,6 +101,10 @@ The classification of concrete kernel knobs is in
    multi-objective for throughput/latency/energy) only over influential knobs.
 4. **Budget**: user-set time/energy budget; scheduled for idle periods; never
    while an interactive workload is active (unless the user requests it).
+5. **Failures are infeasible, not zero**: crashing or OOM-ing configurations
+   are marked infeasible rather than scored as poor results [S-15].
+6. **Seed with known-good arms**: stock settings, TuneD profiles, engine
+   defaults [S-02].
 
 ## Decision rules (initial policy, to be calibrated)
 
@@ -104,8 +120,10 @@ A candidate is **adopted** only if all hold:
 4. **Stability gate**: no new kernel warnings, GPU errors (e.g. NVIDIA Xid),
    OOM kills, scheduler ejections or throttling events during the measurement
    window; soak test for T2/T3.
-5. **Replication**: result replicated in a second, independently ordered
-   measurement block (guards against drift and order effects).
+5. **Replication**: the winner is re-validated in a fresh, independently
+   ordered measurement block — this counters the "winner's curse" of picking
+   the best of many noisy trials and the instability reported in tuning
+   studies [S-10][S-50] (H-S-03).
 
 Otherwise the candidate is rejected or marked *inconclusive* (more samples if
 budget allows).

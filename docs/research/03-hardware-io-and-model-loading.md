@@ -26,7 +26,7 @@
 - **Distributing work across the two machines adds capacity, not speed.** The i5-11500 has 51.2 GB/s of DDR4 and 32 GB of RAM [H-22]. Its best roles are
   orchestrator and benchmark controller, energy logger, CI runner (AVX-512/VNNI and Gen12 iGPU coverage), CPU embeddings/ASR, and model cache.
   llama.cpp RPC is a proof of concept and insecure [H-41]. exo runs CPU-only on Linux [H-68].
-- **Proxmox VE 9.2** (May 2026) runs kernel 7.0 [H-30]. The UI default CPU type `x86-64-v2-AES` [H-32] hides AVX2 and AVX-512, so benchmarks must use
+- **Proxmox VE 9.2** (May 2026) runs kernel 7.0 [H-30]. The UI default CPU type `x86-64-v2-AES` [H-32] hides AVX2 and AVX-512 [H-86], so benchmarks must use
   `host`, with KSM and ballooning off. The Rocket Lake iGPU has no SR-IOV [H-24].
 - **Energy telemetry is weak.** On A100/H100, nvidia-smi samples only ~25 % of runtime [H-71]. AMD RAPL showed accuracy gaps on Zen 2 [H-73],
   and no Zen 4 validation was found. RAPL has been root-only since PLATYPUS [H-76][H-74]. We need a privileged collector plus a wall meter for calibration.
@@ -294,7 +294,8 @@ KV is ignored here, which makes these upper bounds:
   - After CVE-2020-12912 the hwmon `amd_energy` attributes are restricted to owner and group [H-74]. Its upstream status in 7.x is not verified.
 - **Intel RAPL (Rocket Lake).**
   - Intel-side accuracy studies (Haswell/Skylake era) fit RAPL against external meters [H-80].
-  - After PLATYPUS (CVE-2020-8694/8695), powercap `energy_uj` is root-only by default. Distributions document the chmod 400 mitigation [H-76][H-77][H-78][H-79].
+  - After PLATYPUS (CVE-2020-8694/8695) [H-78], unprivileged access to powercap `energy_uj` was removed (upstream kernel fix, not re-read here). Distributions
+    document a chmod 400 mitigation [H-76][H-77][H-79].
   - Intel also changes how energy is reported when SGX is enabled [H-76].
   - Which RAPL domains Rocket Lake exposes (DRAM? psys?) is unverified.
 - **Policy.** Never make `energy_uj` world-readable. Run a small privileged collector that exports aggregated energy to an authorised group.
@@ -338,14 +339,14 @@ Each row is a **Hypothesis H-H-NN** with its statement, rationale, falsification
 
 ## Contradictory or weak evidence
 
-- **7950X3D PCIe lanes:** 28 (AMD, TechSpot) vs 24 (TechPowerUp). Resolved as 28 total and 24 usable [H-01][H-02]. Power: PPT 162 W [H-02] vs "170 W PL2" (CPU-Monkey; Intel terminology, D).
-- **Zen 4 per-CCD read ceiling:** 64 GB/s at FCLK 2 GHz [H-08] vs 59.7 GB/s computed in an HN comment. A forum report measured ~73 GB/s read with 2 CCDs at DDR5-6000 [H-87] (D).
+- **7950X3D PCIe lanes:** 28 (AMD) vs 24 (TechPowerUp). Resolved as 28 total and 24 usable [H-01][H-02]. Power: PPT 162 W [H-02] vs "170 W PL2" (Intel terminology) [H-90].
+- **Zen 4 per-CCD read ceiling:** 64 GB/s at FCLK 2 GHz [H-08] vs 59.7 GB/s computed in an HN comment [H-89]. A forum report measured ~73 GB/s read with 2 CCDs at DDR5-6000 [H-87] (D).
 - **Ada FP8 throughput:** the original whitepaper figures (661/1321 TFLOPS FP8 [H-12]) vs the revised half-rate FP32 accumulate on GeForce, known only via forum posts [H-16].
   The whitepaper host was unreachable.
 - **Rocket Lake GVT-g:** Intel's matrix lists GVT-g [H-24]. An Intel community responder says it is not supported [H-25]. The upstream i915 GVT-g targets older generations (unverified).
 - **compute-runtime and Rocket Lake:** Phoronix says 24.39 disabled Rocket Lake [H-28]. The current README lists it as supported [H-27].
 - **GDS P2PDMA kernel minimum:** ≥6.2 for Ubuntu, 5.14 for RHEL 9.4 [H-46], and ≥7.2 for RAID1/10 [H-45]. These are different scopes, but they are easy to misread.
-- **nvidia-smi "ghost power":** an anecdote says it is A100-only [D, not listed]. The peer-reviewed-track study shows partial sampling on H100 too [H-71].
+- **nvidia-smi "ghost power":** a blog anecdote says it is A100-specific [H-88]. The arXiv study shows partial sampling on H100 too [H-71].
 - **Weak sources:** KTransformers speed-ups (secondary mirror) [H-57]; llama.cpp `--moe-cache-mib` (blog) [H-40]; vLLM offload overheads (single GitHub issues) [H-62][H-63];
   DDR5 4-DIMM latency figures (unverified guide, not used); Petals 2026 status [H-70].
 
@@ -465,3 +466,6 @@ Each row is a **Hypothesis H-H-NN** with its statement, rationale, falsification
 | H-85 | JEDEC JESD79-5 DDR5 SDRAM standard | https://www.jedec.org/standards-documents/docs/jesd79-5 | n.d. | 2026-11-26 | A | Not fetched; 2×32-bit subchannels |
 | H-86 | x86-64 psABI (micro-architecture levels v2/v3/v4) | https://gitlab.com/x86-psABIs/x86-64-ABI | n.d. | 2026-11-26 | A | Not fetched |
 | H-87 | AnandTech Forums: Zen 4 core-to-core and CCD-to-CCD bandwidth | https://forums.anandtech.com/threads/zen4-core-to-core-and-ccd-to-ccd-bandwidth.2615208 | n.d. | 2026-11-26 | D | ~73 GB/s read, 2 CCDs |
+| H-88 | dev.to: Hidden 146 W power draw on NVIDIA A100 GPUs | https://dev.to/mikebains41debug/how-i-discovered-a-hidden-146w-power-draw-on-nvidia-a100-gpus-and-built-an-open-source-fix-1n8h | n.d. | 2026-11-26 | D | "ghost power" anecdote |
+| H-89 | Hacker News comment on Zen 4 per-CCD bandwidth (item 42239911) | https://news.ycombinator.com/item?id=42239911 | 2024 | 2026-11-26 | D | Seen via mirror; 59.7 GB/s |
+| H-90 | CPU-Monkey: AMD Ryzen 9 7950X3D | https://www.cpu-monkey.com/en/cpu-amd_ryzen_9_7950x3d | n.d. | 2026-11-26 | C | "170 W PL2" |
