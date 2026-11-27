@@ -46,10 +46,18 @@ class DirectExecutor:
             if r.returncode != 0:
                 raise ExecutorError(f"nvidia-smi -pl failed: {r.stdout.strip()} {r.stderr.strip()}")
             return
-        path = self.layout.host(target)
+        host = self.layout.host(target)
+        real = os.path.realpath(host)
+        base = os.path.realpath(self.layout.root)
+        rel = "/" + os.path.relpath(real, base)
+        if not real.startswith(base) or not (rel.startswith("/sys/") or rel.startswith("/proc/sys/")):
+            raise ExecutorError(f"{target} resolves outside /sys or /proc/sys")
         try:
-            with open(path, "w") as f:
-                f.write(value)
+            fd = os.open(real, os.O_WRONLY | os.O_TRUNC | os.O_NOFOLLOW | os.O_CLOEXEC)
+            try:
+                os.write(fd, value.encode())
+            finally:
+                os.close(fd)
         except OSError as exc:
             raise ExecutorError(f"write {target}: {exc}") from exc
 

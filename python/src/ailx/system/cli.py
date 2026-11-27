@@ -5,14 +5,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from typing import Any
 
-from ailx import __version__
+from ailx import PACKAGE_VERSION, __version__
 from ailx.probe import collect_hardware_profile
 from ailx.system import doctor, knobs, profiles, resources
 from ailx.system.engines import EngineError, EngineManager, catalog
-from ailx.system.install import InstallError
+from ailx.system.image import ImageError, ImageManager
+from ailx.system.install import GROUP, InstallError, packaged, sudoers_disable, sudoers_enable
 from ailx.system.install import install as sys_install
 from ailx.system.install import plan as install_plan
 from ailx.system.install import uninstall as sys_uninstall
@@ -110,6 +112,7 @@ def cmd_status(a: argparse.Namespace, lay: Layout) -> int:
         "root": str(lay.root),
         "state_dir": str(lay.state_dir),
         "engines_dir": str(lay.engines_dir),
+        "models_dir": str(lay.models_dir),
         "platform": info,
         "drift": drift,
         "interrupted": [t["id"] for t in mgr.interrupted()],
@@ -321,6 +324,16 @@ def cmd_engine(a: argparse.Namespace, lay: Layout) -> int:
 def cmd_system(a: argparse.Namespace, lay: Layout) -> int:
     slay = system_layout()
     log = (lambda s: None) if a.json else print
+    if a.sub == "sudoers":
+        if a.action == "enable":
+            path = sudoers_enable(lay)
+            _out(a, {"sudoers": str(path)}, f"wrote {path} (group {GROUP} may run {lay.helper} without password)")
+        else:
+            removed = sudoers_disable(lay)
+            _out(a, {"removed": removed}, "removed" if removed else "no ailx sudoers rule present")
+        return 0
+    if a.sub in ("install", "uninstall") and packaged():
+        raise InstallError("this system layer is installed from the ailx .deb package; use apt/dpkg instead")
     if a.sub == "plan":
         acts = install_plan(slay, with_sudoers=a.with_sudoers)
         _out(a, [x.describe() for x in acts], "\n".join(x.describe() for x in acts))
@@ -334,9 +347,68 @@ def cmd_system(a: argparse.Namespace, lay: Layout) -> int:
     return 0
 
 
+def _health_checks(lay: Layout) -> list[tuple[str, bool]]:
+    import subprocess
+
+    checks = doctor.run(lay, use_nvml=False)
+    # this check runs as part of boot, so "is-system-running" would still say "starting": use failed units
+    failed = subprocess.run(["systemctl", "--failed", "--no-legend", "--plain"], capture_output=True, text=True)
+    bad = [ln.split()[0] for ln in failed.stdout.splitlines() if ln.strip() and "ailx-boot-health" not in ln]
+    data = lay.host("/var/lib/ailx")
+    return [
+        ("doctor-no-fail", not any(c.status == "fail" for c in checks)),
+        ("no-failed-units" + (f":{','.join(bad)}" if bad else ""), failed.returncode == 0 and not bad),
+        ("data-partition", data.is_dir() and os.access(data, os.W_OK)),
+    ]
+
+
+def cmd_image(a: argparse.Namespace, lay: Layout) -> int:
+    im = ImageManager(lay)
+    if a.sub == "status":
+        st = im.status()
+        if not st["image"]:
+            _out(a, st, st["reason"])
+            return 0
+        rel = st["release"]
+        trial = " TRIAL BOOT" if st["trial_boot"] else ""
+        lines = [
+            f"slot     {st['current_slot']} (default {st.get('default_slot', '?')}){trial}",
+            f"version  {rel.get('VERSION', '?')} build {rel.get('BUILD_ID', '?')}",
+        ]
+        if "note" in st:
+            lines.append(f"note     {st['note']}")
+            _out(a, st, "\n".join(lines))
+            return 0
+        oth = st["other_slot"]
+        lines.append(f"other    slot {oth['slot']}: {oth['release'].get('VERSION', 'unknown')}")
+        if st["next_slot"]:
+            lines.append(f"armed    next boot tries slot {st['next_slot']} once")
+        if st["last_trial"]:
+            lines.append(f"last trial: {st['last_trial']}")
+        _out(a, st, "\n".join(lines))
+        return 0
+    if a.sub == "stage":
+        _out(a, im.stage(a.source, a.sha256, log=(lambda s: None) if a.json else print), "")
+        return 0
+    if a.sub == "confirm":
+        _out(a, im.confirm(), "confirmed: current slot is now the default")
+        return 0
+    if a.sub == "rollback":
+        r = im.rollback()
+        _out(a, r, f"default slot is now {r['default_slot']}; reboot to switch")
+        return 0
+    r = im.health(_health_checks(lay))
+    _out(a, r, json.dumps(r))
+    return 0 if (not r["trial"] or r["confirmed"]) else 3
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="ailx", description="AI Linux system layer")
-    p.add_argument("--version", action="version", version=__version__)
+    p.add_argument(
+        "--version",
+        action="version",
+        version=__version__ + (f" (package {PACKAGE_VERSION})" if PACKAGE_VERSION else ""),
+    )
     p.add_argument("--json", action="store_true", help="machine-readable output")
     p.add_argument("--no-nvml", action="store_true", help="do not use NVML")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -403,6 +475,17 @@ def build_parser() -> argparse.ArgumentParser:
         x.add_argument("install_id")
         x.set_defaults(fn=cmd_engine)
 
+    im = sub.add_parser("image", help="A/B system versions (reference image only)").add_subparsers(
+        dest="sub", required=True
+    )
+    im.add_parser("status").set_defaults(fn=cmd_image)
+    x = im.add_parser("stage", help="write a root filesystem image to the inactive slot and arm one trial boot")
+    x.add_argument("source", help="root filesystem image file or block device")
+    x.add_argument("--sha256", help="expected sha256 of the image (verified before arming)")
+    x.set_defaults(fn=cmd_image)
+    im.add_parser("confirm").set_defaults(fn=cmd_image)
+    im.add_parser("rollback").set_defaults(fn=cmd_image)
+    im.add_parser("health", help="boot-time health check (confirms a trial boot)").set_defaults(fn=cmd_image)
     sy = sub.add_parser("system", help="install/uninstall the system layer").add_subparsers(dest="sub", required=True)
     x = sy.add_parser("plan")
     x.add_argument("--with-sudoers", action="store_true")
@@ -411,6 +494,9 @@ def build_parser() -> argparse.ArgumentParser:
     x.add_argument("--with-sudoers", action="store_true", help="let group ailx run the helper without password")
     x.add_argument("--force", action="store_true")
     x.add_argument("--dry-run", action="store_true")
+    x.set_defaults(fn=cmd_system)
+    x = sy.add_parser("sudoers", help="enable/disable passwordless helper use for group ailx")
+    x.add_argument("action", choices=["enable", "disable"])
     x.set_defaults(fn=cmd_system)
     x = sy.add_parser("uninstall")
     x.add_argument("--purge", action="store_true", help="also remove state, engines and the ailx group")
@@ -425,7 +511,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         rc: int = a.fn(a, load_layout())
         return rc
-    except (ProfileError, TransactionError, EngineError, InstallError, KeyError) as exc:
+    except (ProfileError, TransactionError, EngineError, InstallError, ImageError, KeyError) as exc:
         print(f"ailx: error: {exc}", file=sys.stderr)
         return 1
 

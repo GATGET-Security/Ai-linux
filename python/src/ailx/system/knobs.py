@@ -121,6 +121,31 @@ def _watts(text: str) -> str:
     return str(round(float(text)))
 
 
+def validate_write(layout: Layout, knob_id: str, target: str, value: str) -> None:
+    """Re-validate a write against the registry before it happens.
+
+    Journals live in a group-writable directory and are therefore untrusted input: the target must
+    be one the registry resolves *now* for that knob, and the value must be inside the knob's domain.
+    For GPU power limits only ``min_limit <= W <= default_limit`` is allowed (same as the helper).
+    """
+    k = get(knob_id)
+    if k["security_class"] == "forbidden" or k["mechanism"]["type"] == "none":
+        raise ValueError(f"{knob_id}: knob cannot be written")
+    if target not in {t.target for t in targets(layout, k)}:
+        raise ValueError(f"{knob_id}: target {target!r} is not a registry target on this system")
+    if not re.fullmatch(r"[A-Za-z0-9_.+-]{1,32}", value or ""):
+        raise ValueError(f"{knob_id}: malformed value {value!r}")
+    dom: dict[str, Any] = k.get("domain") or {}
+    if "enum" in dom and value not in dom["enum"]:
+        raise ValueError(f"{knob_id}: {value!r} not in {dom['enum']}")
+    if "int_range" in dom and not (value.isdigit() and dom["int_range"][0] <= int(value) <= dom["int_range"][1]):
+        raise ValueError(f"{knob_id}: {value!r} outside {dom['int_range']}")
+    if "fraction_range" in dom:
+        rows = nvidia_query(target.split(":", 1)[1])
+        if not rows or not value.isdigit() or not float(rows[0]["min"]) <= float(value) <= float(rows[0]["default"]):
+            raise ValueError(f"{knob_id}: {value} W outside [min, default] for {target}")
+
+
 def desired_value(knob: Doc, value: str, target: str) -> str:
     """Validate ``value`` against the knob's domain and translate it into the value to write."""
     dom: dict[str, Any] = knob.get("domain") or {}

@@ -42,6 +42,14 @@ class InstallError(RuntimeError):
     pass
 
 
+PACKAGED_MARKER = "/usr/share/ailx/packaged"
+
+
+def packaged() -> bool:
+    """True when the layer was installed by the .deb (dpkg owns the files)."""
+    return Path(os.environ.get("AILX_ROOT", "/"), PACKAGED_MARKER.lstrip("/")).exists()
+
+
 @dataclass
 class Action:
     kind: str  # group | dir | file | symlink | exec
@@ -67,6 +75,21 @@ def helpers_dir() -> Path:
         if (p / "helpers" / "apply-helper").is_dir():
             return p / "helpers"
     raise InstallError("helper sources not found")
+
+
+def _trusted_tree(p: Path) -> bool:
+    """True if ``p`` and all its parents are root-owned and not group/world-writable.
+
+    /usr/local/bin symlinks are run by root (sudo ailx …); pointing them at code an unprivileged user
+    can modify would be a privilege escalation, so such venvs get no symlinks."""
+    for part in [p, *p.parents]:
+        try:
+            st = part.stat()
+        except OSError:
+            return False
+        if st.st_uid != 0 or st.st_mode & 0o022:
+            return False
+    return True
 
 
 def _with_isolated_shebang(src: Path) -> bytes:
@@ -125,7 +148,7 @@ def plan(layout: Layout, with_sudoers: bool = False) -> list[Action]:
                 note="members of group ailx may run exactly the helper without a password",
             )
         )
-    if sys.prefix != sys.base_prefix:
+    if sys.prefix != sys.base_prefix and _trusted_tree(Path(sys.prefix)):
         for name in ("ailx", "ailx-bench"):
             exe = Path(sys.prefix) / "bin" / name
             if exe.exists():
@@ -296,3 +319,47 @@ def uninstall(layout: Layout, purge: bool = False, force: bool = False, dry_run:
 
 def describe(actions: list[Action]) -> list[Doc]:
     return [asdict(a) | {"content": None} for a in actions]
+
+
+def sudoers_text(helper: str) -> str:
+    return (
+        "# written by 'ailx system sudoers enable' — members of group ailx may run exactly the\n"
+        "# AI Linux apply helper (allow-listed writes only) without a password.\n"
+        f"%{GROUP} ALL=(root) NOPASSWD: {helper}\n"
+    )
+
+
+def sudoers_enable(layout: Layout) -> Path:
+    """Write /etc/sudoers.d/ailx for the configured helper path, validated with ``visudo -c``."""
+    if str(layout.root) == "/" and os.geteuid() != 0:
+        raise InstallError("needs root (sudo ailx system sudoers enable)")
+    helper = layout.host(layout.helper)
+    if not helper.is_file():
+        raise InstallError(f"helper {layout.helper} not installed")
+    if str(layout.root) == "/" and not _trusted_tree(helper):
+        raise InstallError(f"{layout.helper} or a parent directory is not root-owned or is group/world-writable")
+    dest = layout.host(SUDOERS)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dest.with_name(".ailx.sudoers.tmp")
+    tmp.write_text(sudoers_text(layout.helper))
+    os.chmod(tmp, 0o440)
+    if shutil.which("visudo"):
+        r = subprocess.run(["visudo", "-cf", str(tmp)], capture_output=True, text=True)
+        if r.returncode != 0:
+            tmp.unlink()
+            raise InstallError(f"sudoers validation failed: {r.stdout}{r.stderr}")
+    os.replace(tmp, dest)
+    return dest
+
+
+def sudoers_disable(layout: Layout) -> bool:
+    dest = layout.host(SUDOERS)
+    if dest.exists():
+        if (
+            "ailx system sudoers enable" not in dest.read_text()
+            and "written by ailx system install" not in dest.read_text()
+        ):
+            raise InstallError(f"{SUDOERS} was not written by ailx; leaving it alone")
+        dest.unlink()
+        return True
+    return False

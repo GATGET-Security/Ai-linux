@@ -164,6 +164,16 @@ def plan(
             if current is None:
                 skip("current value unreadable", t.target, None)
                 continue
+            if t.target.startswith("nvidia:"):
+                rows = knobs.nvidia_query(t.target.split(":", 1)[1])
+                if rows and float(current) > float(rows[0]["default"]):
+                    skip(
+                        "current power limit is above the vendor default; restoring it would be refused by "
+                        "policy, so AI Linux does not manage this GPU",
+                        t.target,
+                        current,
+                    )
+                    continue
             action = "no-change" if current == desired else "change"
             steps.append(
                 Step(

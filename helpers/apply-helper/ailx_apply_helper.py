@@ -71,7 +71,7 @@ def check_file_target(target: str, value: str) -> str:
     rel = "/" + os.path.relpath(real, base) if real.startswith(base) else real
     if not (rel.startswith("/sys/") or rel.startswith("/proc/sys/")):
         raise PermissionError(f"{target} resolves outside /sys or /proc/sys")
-    return host
+    return real  # write the resolved path (with O_NOFOLLOW) so a later symlink swap cannot redirect it
 
 
 def nvidia_smi() -> str:
@@ -111,8 +111,11 @@ def handle(req: dict[str, object]) -> dict[str, object]:
     if target.startswith("nvidia:"):
         write_power_limit(target.split(":", 1)[1], value)
     else:
-        with open(check_file_target(target, value), "w") as f:
-            f.write(value)
+        fd = os.open(check_file_target(target, value), os.O_WRONLY | os.O_TRUNC | os.O_NOFOLLOW | os.O_CLOEXEC)
+        try:
+            os.write(fd, value.encode())
+        finally:
+            os.close(fd)
     return {"ok": True, "target": target, "value": value}
 
 

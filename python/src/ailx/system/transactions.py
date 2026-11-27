@@ -22,6 +22,7 @@ import datetime as _dt
 import fcntl
 import json
 import os
+import re
 import secrets
 import subprocess
 import sys
@@ -37,6 +38,7 @@ from ailx.system.paths import Layout
 from ailx.system.profiles import Plan
 
 INTERRUPTED = ("prepared", "applying")
+TXN_ID = re.compile(r"^txn-[0-9]{8}T[0-9]{6}-[0-9a-f]{6}$")
 ACTIVE = ("pending-confirmation", "committed")
 
 
@@ -88,14 +90,42 @@ class Manager:
     def state(self) -> Doc:
         try:
             doc: Doc = json.loads((self.dir / "state.json").read_text())
-            return doc
         except (OSError, ValueError):
             return {"schema": "ailx.system-state/v0", "active_profile": None, "active_txn": None, "history": []}
+        if doc.get("active_txn") is not None and not TXN_ID.match(str(doc["active_txn"])):
+            raise TransactionError(f"state.json names an invalid transaction id {doc['active_txn']!r}")
+        return doc
+
+    def reconcile(self) -> str | None:
+        """Runtime-only changes do not survive a reboot: an active transaction from an earlier boot is
+        marked ``expired-by-reboot`` (values are back at their boot defaults) and deactivated."""
+        st = self.state()
+        tid = st.get("active_txn")
+        if not tid:
+            return None
+        txn = self.load(tid)
+        bid = self.boot_id()
+        if txn.get("boot_id") and bid and txn["boot_id"] != bid and txn["status"] in ACTIVE:
+            txn["status"] = "expired-by-reboot"
+            self._event(txn, f"boot id changed ({txn['boot_id']} -> {bid}); runtime changes were reset by the reboot")
+            self._save(txn)
+            st.update(active_profile=None, active_txn=None)
+            self._save_state(st)
+            return str(tid)
+        return None
 
     def _save_state(self, st: Doc) -> None:
         _atomic_write(self.dir / "state.json", st)
 
+    def boot_id(self) -> str | None:
+        try:
+            return self.layout.host("/proc/sys/kernel/random/boot_id").read_text().strip()
+        except OSError:
+            return None
+
     def load(self, txn_id: str) -> Doc:
+        if not TXN_ID.match(txn_id or ""):
+            raise TransactionError(f"invalid transaction id {txn_id!r}")
         try:
             doc: Doc = json.loads((self.txn_dir / f"{txn_id}.json").read_text())
             return doc
@@ -118,7 +148,16 @@ class Manager:
     def apply(
         self, plan: Plan, confirm_timeout: float | None = None, replace: bool = False, spawn_watchdog: bool = True
     ) -> Doc:
+        cmd = getattr(self.executor, "cmd", None)
+        if confirm_timeout and spawn_watchdog and cmd and cmd[0] == "sudo":
+            probe = subprocess.run([*cmd[:2], "-l", self.layout.helper], capture_output=True)
+            if probe.returncode != 0:
+                raise TransactionError(
+                    "--confirm-within needs passwordless sudo for the helper (the watchdog runs unattended); "
+                    "enable it with 'ailx system sudoers enable' or run as root"
+                )
         with self.lock():
+            self.reconcile()
             st = self.state()
             if self.interrupted():
                 raise TransactionError("interrupted transaction found; run 'ailx rollback --recover' first")
@@ -134,6 +173,7 @@ class Manager:
                 "schema": "ailx.transaction/v0",
                 "id": f"txn-{_dt.datetime.now(_dt.UTC):%Y%m%dT%H%M%S}-{secrets.token_hex(3)}",
                 "created_at": _now(),
+                "boot_id": self.boot_id(),
                 "profile": plan.profile,
                 "include_experimental": plan.include_experimental,
                 "executor": self.executor.name,
@@ -151,7 +191,7 @@ class Manager:
             self._save(txn)
             for ch in txn["changes"]:
                 try:
-                    self.executor.write(ch["target"], ch["after"])
+                    self._checked_write(ch["knob"], ch["target"], ch["after"])
                     ch["applied"] = True
                     now = knobs.read(self.layout, knobs.get(ch["knob"]), ch["target"])
                     if now != ch["after"]:
@@ -201,6 +241,13 @@ class Manager:
                 )
         return out
 
+    def _checked_write(self, knob_id: str, target: str, value: str) -> None:
+        try:
+            knobs.validate_write(self.layout, knob_id, target, value)
+        except (ValueError, KeyError) as exc:
+            raise ExecutorError(f"refused by registry validation: {exc}") from exc
+        self.executor.write(target, value)
+
     def _spawn_watchdog(self, txn_id: str) -> None:
         env = dict(os.environ, AILX_STATE_DIR=str(self.dir), AILX_ROOT=str(self.layout.root))
         subprocess.Popen(
@@ -249,7 +296,7 @@ class Manager:
                 self._event(txn, f"drift on {ch['target']}: {now!r} != {ch['after']!r}; not restored")
                 continue
             try:
-                self.executor.write(ch["target"], ch["before"])
+                self._checked_write(ch["knob"], ch["target"], ch["before"])
                 if knobs.read(self.layout, k, ch["target"]) != ch["before"]:
                     raise ExecutorError("read-back after restore differs")
                 ch["reverted"] = True
@@ -280,6 +327,7 @@ class Manager:
 
     def rollback(self, txn_id: str | None = None, force: bool = False, reason: str = "operator request") -> Doc:
         with self.lock():
+            self.reconcile()
             tid = txn_id or self.state().get("active_txn")
             if not tid:
                 raise TransactionError("no active transaction")

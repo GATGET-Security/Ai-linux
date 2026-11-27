@@ -25,6 +25,7 @@ class Layout:
     engines_dir: Path  # isolated engine installations
     helper: str  # privileged apply helper (system mode)
     mode: str  # "system" | "user"
+    models_dir: Path = Path("/nonexistent")  # model files (user data, never removed by ailx)
 
     def host(self, path: str) -> Path:
         """Map an absolute host path (e.g. /sys/...) below the configured root."""
@@ -57,8 +58,16 @@ def load_layout() -> Layout:
 
     state, s_sys = pick("AILX_STATE_DIR", "state_dir", root / "var/lib/ailx", xdg_state / "ailx")
     engines, _ = pick("AILX_ENGINES_DIR", "engines_dir", root / "opt/ailx/engines", xdg_data / "ailx/engines")
+    models, _ = pick("AILX_MODELS_DIR", "models_dir", root / "var/lib/ailx/models", xdg_data / "ailx/models")
     helper = os.environ.get("AILX_APPLY_HELPER", cfg.get("helper", DEFAULT_HELPER))
-    return Layout(root=root, state_dir=state, engines_dir=engines, helper=helper, mode="system" if s_sys else "user")
+    return Layout(
+        root=root,
+        state_dir=state,
+        engines_dir=engines,
+        helper=helper,
+        mode="system" if s_sys else "user",
+        models_dir=models,
+    )
 
 
 def system_layout() -> Layout:

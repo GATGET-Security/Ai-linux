@@ -55,6 +55,7 @@ def build_host(root: Path) -> Path:
     w(root, "/sys/devices/system/cpu/online", "0-3")
     w(root, "/etc/os-release", 'ID=ubuntu\nVERSION_ID="26.04"\nPRETTY_NAME="Ubuntu 26.04 LTS"')
     w(root, "/proc/sys/kernel/osrelease", "7.0.0-15-generic")
+    w(root, "/proc/sys/kernel/random/boot_id", "11111111-2222-3333-4444-555555555555")
     return root
 
 
