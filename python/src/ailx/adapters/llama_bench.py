@@ -25,6 +25,8 @@ OPTIONAL_FLAGS = {
     "ubatch_size": "-ub",
     "cache_type_k": "-ctk",
     "cache_type_v": "-ctv",
+    "cpu_mask": "-C",
+    "fit_target": "-fitt",
 }
 
 

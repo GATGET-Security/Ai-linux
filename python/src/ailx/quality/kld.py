@@ -165,14 +165,16 @@ def evaluate(
     threads: int | None = None,
     timeout: float = 7200,
     corpus: str | None = None,
+    extra_args: list[str] | None = None,
 ) -> Doc:
+    """``extra_args`` are passed to the candidate run only (e.g. ``-ctk q8_0``: lossy KV-cache types)."""
     meta: Doc = json.loads(Path(reference_json).read_text())
     checks = check_prerequisites(meta, binary, candidate, corpus)
     hard_fail = [c for c in checks if c["ok"] is False]
     unknown = [c for c in checks if c["ok"] is None]
     out: Doc = {
         "reference": str(reference_json),
-        "candidate": {"path": candidate, "sha256": file_sha256(candidate)},
+        "candidate": {"path": candidate, "sha256": file_sha256(candidate), "extra_args": list(extra_args or [])},
         "prerequisites": checks,
         "metrics": {},
         "verdict": None,
@@ -185,7 +187,17 @@ def evaluate(
     if threads:
         common += ["-t", str(threads)]
     text = _run(
-        binary, ["-m", candidate, "--kl-divergence-base", meta["kld_file"]["path"], "--kl-divergence", *common], timeout
+        binary,
+        [
+            "-m",
+            candidate,
+            "--kl-divergence-base",
+            meta["kld_file"]["path"],
+            "--kl-divergence",
+            *common,
+            *(extra_args or []),
+        ],
+        timeout,
     )
     metrics = parse_kld_output(text)
     out["metrics"] = metrics
