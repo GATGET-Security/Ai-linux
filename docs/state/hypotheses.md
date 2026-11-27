@@ -1,6 +1,6 @@
 # Hypothesis Register
 
-> Status: all **untested** (Phase 0, updated by Phase 0.1 review) · Last updated: 2026-11-26 · Full statements, rationale and risks: see the linked research documents · Test references: `docs/architecture/hardware-test-plan.md` (HW-*, E1–E15) and `docs/research/05-base-distributions-and-licensing.md` §1.9 (E-01…E-09)
+> Status: all **untested** (Phase 0, updated by Phase 0.1 review; H-R-11/12 added in Phase 1.5) · Last updated: 2026-11-27 · Full statements, rationale and risks: see the linked research documents · Test references: `docs/architecture/hardware-test-plan.md` (HW-*, E1–E15) and `docs/research/05-base-distributions-and-licensing.md` §1.9 (E-01…E-09)
 
 Priority: **P1** = tested in the first hardware block; **P2** = Phase 2–3;
 **P3** = research track or opportunistic. Status values: `untested`,
@@ -43,6 +43,8 @@ Priority: **P1** = tested in the first hardware block; **P2** = Phase 2–3;
 | [H-K-02](../research/02-kernel-and-os.md) | sched_ext choice matters only under CPU contention | E7 | P2 | untested |
 | [H-K-03](../research/02-kernel-and-os.md) | EEVDF slice hints recover most of any scx benefit | E7 | P2 | untested |
 | [H-R-10](../research/08-architecture-review.md) | Userspace PGO/BOLT builds of CPU inference paths (e.g. llama.cpp CPU backend) give measurable CPU-decode/prefill gains, unlike kernel PGO | E12 (variant) | P2 | untested |
+| [H-R-11](../architecture/compute-engine.md) | The planner's memory prediction (exact weights/KV + heuristic buffers) is within ±25 % of measured device memory and conservative (≥ measured) for host memory on the reference models | VL-1.5-02 (`tools/hw_validate.py` runtime step: device/RSS vs prediction) | P1 | untested (cloud: prediction 5–7× RSS for a 17 MB model) |
+| [H-R-12](../architecture/compute-engine.md) | For hybrid (CPU+GPU) placements, a confirmed tuned configuration beats the llama.cpp engine defaults (`--fit`, auto threads) by > e_min on decode for ≥1 reference model; for full-GPU placements no candidate does | VL-1.5-05 (calibrated `ailx tune run`) | P1 | untested
 | [H-S-09](../research/06-self-optimization-and-benchmarking.md) | Latency-oriented sched_ext improves interactive p99 under load, not GPU-bound throughput (>1%) | E7 | P2 | untested |
 | [H-K-05](../research/02-kernel-and-os.md) | DAMON-driven THP collapse raises CPU-inference tokens/s without app changes | E6 | P2 | untested |
 | [H-K-08](../research/02-kernel-and-os.md) | `isolcpus`/`nohz_full` do not help single-user GPU inference | E7 (variant) | P3 | untested |

@@ -71,6 +71,16 @@ truncate.
   This is the operator's own choice. The packaged layout avoids it, and the
   runtime-foundation documentation recommends the packaged or sudoers path.
 
+## Addendum (Phase 1.5): compute engine inputs
+
+The compute engine adds three untrusted inputs; none crosses into root (the runtime is unprivileged):
+
+| Input | Risk | Control | Test |
+|-------|------|---------|------|
+| Model files (GGUF/safetensors) | crafted headers: huge counts/lengths, truncation, offsets beyond the file | header-only bounded reader, no mmap/exec, explicit limits, data-extent check | `test_reader_rejects_malformed_files` |
+| Runtime instance records (group-writable) | edited PID makes `stop` signal another process | PID start time + `argv` must match a binary inside the engines directory | `test_tampered_record_cannot_redirect_stop` |
+| Tuning records (group-writable) | argument smuggling, silently lossy KV cache | settings validated by type/domain; lossy values need `--allow-lossy` at every start; schema rejects lossy adoption without a passed gate | `test_tuned_settings_are_validated` |
+
 ## References
 
 - ADR-0011 (Proposed) · `docs/architecture/runtime-foundation.md` ·

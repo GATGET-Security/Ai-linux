@@ -66,6 +66,18 @@ testing; it does **not** replace the base-distribution bake-off (ADR-0005).
 Spec: `docs/architecture/reference-image.md`; results:
 `docs/state/image-prototype-report.md`.
 
+## Phase 1.5 — AI Compute Engine foundation (✅ implemented 2026-11-27, CPU/CI-tested)
+
+Groundwork for Phase 2, built ahead of the hardware run (ADR-0010): capability engine (provider
+model), GGUF/safetensors analysis, placement planner with memory fit and bottleneck classes, managed
+llama-server runtime with admission control, priorities and experimental CPU placement, autotuning
+(screening → confirmation → adoption on the existing campaign stack, quality gate for lossy), CLI
+`ailx caps|model|recommend|run|tune`, and an automated hardware validation run
+(`tools/hw_validate.py`). ADR-0013 (proposed). Covers the Phase 2 rows "MoE/offload planner",
+"runtime-parameter tuning" and "Optimizer v0" *mechanically*; the MVP exit criteria (≥1 profile
+hw-validated, quality and stability gates) remain open until VL-1.5-* and Phase 1.2 have run.
+Spec: `docs/architecture/compute-engine.md`.
+
 ## Phase 2 — Tune as a layer → MVP "ailx 0.1" (≈ 3–4 months)
 
 | Area | Content |

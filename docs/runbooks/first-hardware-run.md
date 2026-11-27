@@ -1,6 +1,6 @@
 # Runbook: First Hardware Run (Block 1.2 — HW-0 … HW-2 + E1)
 
-> Status: ready to execute, **not yet executed** · Last updated: 2026-11-27 · Tools: `ailx` + `ailx-bench` 0.1.0 · Test plan: `docs/architecture/hardware-test-plan.md`
+> Status: ready to execute, **not yet executed** · Last updated: 2026-11-27 · Tools: `ailx` + `ailx-bench` 0.2.0 · Test plan: `docs/architecture/hardware-test-plan.md`
 
 Reference platform (maintainer decision): **Ubuntu 26.04 LTS + NVIDIA** on the
 workstation (Ryzen 9 7950X3D, RTX 4090, 64 GB DDR5, PCIe 5.0 NVMe). The
@@ -29,12 +29,12 @@ sudo reboot
 
 git clone -b claude/ai-linux-research-architecture-1bc3lh https://github.com/GATGET-Security/Ai-linux.git
 cd Ai-linux
-sudo python3 -m venv /opt/ailx/venv && sudo /opt/ailx/venv/bin/pip install "./python[nvidia,gguf]"
-
-# system layer: group ailx, /var/lib/ailx, /opt/ailx/engines, helpers, sudoers drop-in (review the plan first)
-sudo /opt/ailx/venv/bin/ailx system plan --with-sudoers
-sudo /opt/ailx/venv/bin/ailx system install --with-sudoers
+# native package (Phase 1.4): code in dist-packages, group ailx, /var/lib/ailx, helpers, units
+python3 packaging/deb/build_deb.py --version 0.2.0-1 --out out/
+sudo apt install ./out/ailx_0.2.0-1_all.deb python3-gguf   # GPU data via nvidia-smi (NVML python bindings optional)
+sudo ailx system sudoers enable      # opt-in: passwordless helper for group ailx (needed for --confirm-within)
 sudo usermod -aG ailx "$USER"        # re-login afterwards
+# (unpackaged alternative: python3 -m venv … && pip install "./python[nvidia,gguf]" && ailx system install)
 ailx doctor
 
 # llama.cpp, pinned commit, CUDA build in an isolated engine directory with build manifest (≈ minutes)
@@ -138,9 +138,46 @@ ailx-bench campaign all workloads/campaigns/synthetic-aa.json --report vm-selfte
 CPU-only llama-bench campaigns on the VM reuse `workloads/smoke/llama-bench-tiny.json`
 as a template with a real CPU model.
 
-## 8. After the run
+## 8. AI Compute Engine validation (Phase 1.5; VL-1.5-01 … 06)
+
+Pick 2–3 reference GGUF models that exercise different placements on 24 GB VRAM, record licence,
+quantization and sha256, e.g. an ~8B dense model (fits fully), a ~70B dense Q4 (layer split) and a
+MoE such as gpt-oss-120b (expert split). Freeze the environment (§3) first.
+
+```bash
+ailx caps                                    # check LLC roles, CUDA backend 'usable', 1008 GB/s provenance
+ailx model plan /models/<m>.gguf --ctx 8192  # prediction BEFORE the run (kept in the report as well)
+python3 tools/hw_validate.py --label ubuntu-26.04-stock \
+    --model /models/dense-8b.gguf --model /models/dense-70b-q4.gguf --model /models/moe-120b.gguf \
+    --ctx 8192 --out ~/hwv-ubuntu-stock
+# optional, experimental CPU placements (E2-like, H-H-01/H-K-09):
+python3 tools/hw_validate.py --label ubuntu-26.04-stock-placement --include-experimental \
+    --model /models/dense-70b-q4.gguf --ctx 8192 --out ~/hwv-placement --skip runtime --skip admission
+```
+
+What it does (≈ 1–3 h depending on models): capabilities vs `workloads/hw/reference-7950x3d-4090.json`,
+engine integrity, plans, each model served by a managed llama-server (health, 32-token completion,
+RSS/VRAM vs prediction → H-R-11), a second over-budget instance that must be refused before start,
+A/A calibration per model on its tuning workload, calibrated `ailx tune run` per model (→ H-R-12).
+`report.md` lists **suggested** ledger updates; a maintainer reviews them — nothing is marked
+validated automatically, and suggestions are suppressed if the machine deviates from the reference.
+
+For the base-distribution bake-off (ADR-0005, E-0x) run the same command on the experimental
+reference image (`hw` flavor, ADR-0012) with `--label ailx-image-hw` and compare the two reports.
+
+Single commands (same steps by hand):
+
+```bash
+ailx run start chat /models/dense-8b.gguf --ctx 8192 --wait 600 && ailx run status chat && ailx run stop chat
+ailx tune calibrate /models/dense-70b-q4.gguf                       # prints the calibration ID
+ailx tune run /models/dense-70b-q4.gguf --calibration <ana-…>      # screening -> confirmation -> decision
+ailx recommend /models/dense-70b-q4.gguf                            # plan + adopted config + start command
+ailx run start big /models/dense-70b-q4.gguf --config auto --wait 900
+```
+
+## 9. After the run
 
 1. `ailx-bench store verify`; archive `~/ailx-store` (local; sharing is opt-in).
-2. Update `docs/state/validation-ledger.md` (rows VL-1.1-*) with result/analysis IDs.
+2. Update `docs/state/validation-ledger.md` (rows VL-1.1-*, VL-1.3-*, VL-1.5-*) with result/analysis IDs.
 3. Update `docs/state/hypotheses.md` (H-S-01, H-S-03, H-H-08 …) with verdicts and IDs.
 4. Any number quoted in docs must carry its `ana-`/`res-` ID (`ailx-bench validate-claims`).

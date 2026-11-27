@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-11-27 · Phase: **1.4 — Packaging & bootable prototype (QEMU-validated); Phase 1.2 hardware run deferred (workstation unavailable)**
+> Last updated: 2026-11-27 · Phase: **1.5 — AI Compute Engine foundation (CPU/CI-tested); Phase 1.2 hardware run deferred (workstation unavailable)**
 
 ## Deliverables of Phase 0
 
@@ -25,6 +25,22 @@
 | **Phase 1.1 executable specification** | `docs/architecture/phase1.1-measurement-foundation.md` | ready (blocked by prerequisites P1–P3) |
 | Register updates after review: 57 hypotheses, 22 risks | `docs/state/` | done |
 
+## Phase 1.5 outcome
+
+- Maintainer decisions recorded: ADR-0011 accepted, ADR-0012 accepted as experimental image
+  architecture, AGENTS.md §11 change approved.
+- AI Compute Engine (`python/src/ailx/compute/`, ADR-0013 proposed): capability engine with
+  provider model (NVIDIA NVML/nvidia-smi/sysfs, AMD/Intel/NPU sysfs), bounded GGUF/safetensors
+  analysis, placement planner (full GPU / MoE expert split / layer split / CPU, max context,
+  bottleneck classes, theoretical decode bound), managed llama-server runtime (admission control,
+  priorities, preemption on request, experimental CPU placement, verified process identity),
+  autotuning (A/A calibration, screening, confirmation, KLD gate for lossy, verify/revert), CLI with
+  JSON and dry runs, four new schemas with conformance fixtures.
+- Tests: compute suite incl. real llama.cpp e2e (llama-server + tuning on the CI runner's CPU);
+  `tools/hw_validate.py` mechanics run on the cloud VM (deviations from the reference profile
+  reported, no ledger suggestions).
+- Validated on hardware: **nothing yet** (VL-1.5-01 … 06 hw-queued).
+
 ## Phase 1.4 outcome
 
 - Native `.deb` (`packaging/deb/`): byte-identical rebuilds, lintian clean
@@ -33,7 +49,7 @@
   added (build twice + lintian + lifecycle in an `ubuntu:26.04` container).
 - Trust-boundary review of ADR-0011: 7 findings fixed and tested
   (`architecture/trust-boundary-review.md`).
-- Reference image prototype (ADR-0012 proposed): built (vm: 209 packages,
+- Reference image prototype (ADR-0012, accepted as experimental architecture): built (vm: 209 packages,
   qcow2 ≈ 732 MiB incl. engine + test models; hw rootfs: 248 packages, not
   booted) and validated in QEMU/TCG incl. Secure Boot (OVMF + MS keys):
   boot, CLI, CPU inference (random-weight test model), A/B update, rollback,

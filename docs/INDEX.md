@@ -1,6 +1,6 @@
 # Documentation Index
 
-> Last updated: 2026-11-27 (Phase 1.4) · Start with [`../AGENTS.md`](../AGENTS.md) and [`CURRENT.md`](CURRENT.md)
+> Last updated: 2026-11-27 (Phase 1.5) · Start with [`../AGENTS.md`](../AGENTS.md) and [`CURRENT.md`](CURRENT.md)
 
 Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 **cold** = read on demand and cite by ID.
@@ -25,6 +25,7 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 | [`architecture/community-and-licensing.md`](architecture/community-and-licensing.md) | License set, governance, contribution and community strategy |
 | [`architecture/runtime-foundation.md`](architecture/runtime-foundation.md) | `ailx` system layer: profiles, transactions, privilege model, engines, install concept |
 | [`architecture/trust-boundary-review.md`](architecture/trust-boundary-review.md) | Phase 1.4 review of the privileged boundary (ADR-0011): findings F1–F7, residual risks |
+| [`architecture/compute-engine.md`](architecture/compute-engine.md) | AI Compute Engine: capabilities, model analysis, planner, managed runtime, autotuning |
 | [`architecture/reference-image.md`](architecture/reference-image.md) | `.deb` packaging, experimental A/B reference image, versioning, upgrade, recovery |
 | [`architecture/phase1.1-measurement-foundation.md`](architecture/phase1.1-measurement-foundation.md) | **Executable specification of the next block** (schemas, WPs, acceptance criteria) |
 
@@ -44,7 +45,8 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 
 | Document | Purpose |
 |----------|---------|
-| [`runbooks/first-hardware-run.md`](runbooks/first-hardware-run.md) | Commands for HW-0 … HW-2 and E1 on the reference hardware |
+| [`runbooks/first-hardware-run.md`](runbooks/first-hardware-run.md) | Commands for HW-0 … HW-2, E1 and the compute-engine validation (§8) on the reference hardware |
+| `../tools/hw_validate.py`, `../workloads/hw/reference-7950x3d-4090.json` | Automated hardware validation run and reference expectations |
 | [`../python/README.md`](../python/README.md) | `ailx-bench` package |
 | [`../schemas/README.md`](../schemas/README.md) | Canonical schemas and conformance corpus |
 | [`../helpers/rapl-collector/README.md`](../helpers/rapl-collector/README.md) | RAPL helper, threat model |
@@ -67,8 +69,9 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 | [0008](adr/0008-self-optimizer-safety-tiers.md) | Self-optimizer safety tiers and adoption rules | Accepted |
 | [0009](adr/0009-licensing-and-contribution-model.md) | Licensing set and contribution model | Accepted as amended (MIT / GPL-2.0-only) |
 | [0010](adr/0010-build-heavy-deferred-validation.md) | Build-heavy / deferred-validation strategy | Accepted |
-| [0011](adr/0011-system-layer-privilege-and-transactions.md) | System layer: unprivileged planner, privileged helper, journaled transactions (review amendment 1.4) | Proposed |
-| [0012](adr/0012-reference-image-prototype-ab-slots.md) | Experimental reference image: Ubuntu 26.04, A/B root slots, data partition | Proposed |
+| [0011](adr/0011-system-layer-privilege-and-transactions.md) | System layer: unprivileged planner, privileged helper, journaled transactions (review amendment 1.4) | Accepted |
+| [0012](adr/0012-reference-image-prototype-ab-slots.md) | Experimental reference image: Ubuntu 26.04, A/B root slots, data partition | Accepted (experimental image architecture) |
+| [0013](adr/0013-compute-engine-planning-runtime-autotuning.md) | Compute engine: capability-driven planning, engine-native fitting, managed runtime, autotuning | Proposed |
 
 ## Research (cold)
 

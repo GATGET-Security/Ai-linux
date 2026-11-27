@@ -4,14 +4,14 @@
 local AI workloads** — LLMs, image/video/audio generation, embeddings,
 autonomous agents, training and fine-tuning.
 
-> **Status: Phase 1.4 — Packaging & bootable prototype.** `ailx` (system
-> layer) and `ailx-bench` (benchmark harness) ship as a native `.deb`; an
-> **experimental** headless reference image (Ubuntu 26.04, A/B root slots,
-> separate data partition) boots and updates/rolls back in QEMU — see the
-> [validation report](docs/state/image-prototype-report.md). **Nothing has been
-> measured on the reference hardware yet**; all profile settings are
-> experimental and off by default. Next: the first hardware run
-> ([runbook](docs/runbooks/first-hardware-run.md)).
+> **Status: Phase 1.5 — AI Compute Engine foundation.** `ailx` knows the machine's AI
+> capabilities (`ailx caps`), analyses models and plans their placement (`ailx model plan`), runs
+> them as managed llama-server instances with admission control (`ailx run`) and tunes engine
+> settings with pre-registered, calibrated A/B campaigns (`ailx tune`). It ships as a native `.deb`;
+> an **experimental** A/B reference image exists. **Nothing has been measured on the reference
+> hardware yet**; every adopted setting is a measured delta against the engine defaults, and
+> profile/system settings stay experimental and off by default. Next: the first hardware run
+> ([runbook](docs/runbooks/first-hardware-run.md), incl. `tools/hw_validate.py`).
 
 ## Why
 
@@ -91,6 +91,10 @@ ailx doctor                            # diagnosis with remedies
 ailx status && ailx resources          # system-layer state, live CPU/RAM/GPU/VRAM
 ailx profile plan inference --include-experimental   # what an (unvalidated) profile would change
 ailx engine install llama.cpp --variant cpu          # pinned, isolated build with manifest
+ailx caps                              # CPU/CCD/ISA, GPUs, memory, usable backends (JSON with --json)
+ailx model plan model.gguf --ctx 8192  # placement, memory, engine, bottlenecks (estimates labeled)
+ailx run start chat model.gguf --wait 300 && ailx run status chat   # managed llama-server
+ailx tune calibrate model.gguf && ailx tune run model.gguf --calibration <ana-…>   # A/A, then tuning
 ailx-bench probe                       # hardware profile + fingerprint
 ailx-bench campaign all ../workloads/campaigns/synthetic-aa.json --report aa.md   # simulated self-test
 ```
