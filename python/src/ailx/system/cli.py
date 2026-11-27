@@ -486,6 +486,9 @@ def build_parser() -> argparse.ArgumentParser:
     im.add_parser("confirm").set_defaults(fn=cmd_image)
     im.add_parser("rollback").set_defaults(fn=cmd_image)
     im.add_parser("health", help="boot-time health check (confirms a trial boot)").set_defaults(fn=cmd_image)
+    from ailx.compute.cli import register as register_compute
+
+    register_compute(sub)
     sy = sub.add_parser("system", help="install/uninstall the system layer").add_subparsers(dest="sub", required=True)
     x = sy.add_parser("plan")
     x.add_argument("--with-sudoers", action="store_true")
@@ -507,12 +510,17 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    from ailx.compute.cli import ERRORS as COMPUTE_ERRORS
+
     a = build_parser().parse_args(argv)
     try:
         rc: int = a.fn(a, load_layout())
         return rc
-    except (ProfileError, TransactionError, EngineError, InstallError, ImageError, KeyError) as exc:
-        print(f"ailx: error: {exc}", file=sys.stderr)
+    except (ProfileError, TransactionError, EngineError, InstallError, ImageError, KeyError, *COMPUTE_ERRORS) as exc:
+        if a.json:
+            print(json.dumps({"error": str(exc), "kind": type(exc).__name__}))
+        else:
+            print(f"ailx: error: {exc}", file=sys.stderr)
         return 1
 
 

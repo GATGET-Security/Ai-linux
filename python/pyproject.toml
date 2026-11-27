@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ailx-bench"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI Linux measurement foundation: hardware probe, benchmark harness, statistics, telemetry, quality gate"
 readme = "README.md"
 license = "MIT"

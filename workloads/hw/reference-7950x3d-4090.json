@@ -1,0 +1,21 @@
+{
+  "name": "reference-workstation-7950x3d-4090",
+  "description": "Expected capabilities of the reference workstation (docs/architecture/hardware-test-plan.md §1). A mismatch is reported as a deviation to check (BIOS, slot, driver), not as a failure of AI Linux. Values are from datasheets / the test plan, not measurements.",
+  "expectations": [
+    {"path": "cpu.physical_cores", "op": "==", "value": 16, "source": "test plan §1 (16C/32T) [H-01]"},
+    {"path": "cpu.logical_cpus", "op": "==", "value": 32, "source": "test plan §1 [H-01]"},
+    {"path": "cpu.llc_domains.length", "op": "==", "value": 2, "source": "2 CCDs [H-03]"},
+    {"path": "cpu.llc_domains.l3_mib", "op": "set==", "value": [96, 32], "source": "96 MB V-Cache CCD + 32 MB CCD [H-03]"},
+    {"path": "cpu.asymmetric_llc", "op": "==", "value": true, "source": "X3D asymmetry [H-03]"},
+    {"path": "cpu.isa.level", "op": "==", "value": "x86-64-v4", "source": "Zen 4 AVX-512 [H-01]"},
+    {"path": "cpu.isa.ai_extensions", "op": "contains", "value": ["avx512_vnni", "avx512_bf16"], "source": "Zen 4 [H-01]"},
+    {"path": "memory.total_gib", "op": "between", "value": [58, 64], "source": "64 GB DDR5 (2 x 32 GB) [test plan §1]"},
+    {"path": "gpu.name", "op": "==", "value": "NVIDIA GeForce RTX 4090", "source": "test plan §1"},
+    {"path": "gpu.total_gib", "op": "between", "value": [23.5, 24.1], "source": "24 GB GDDR6X [H-12]"},
+    {"path": "gpu.compute_capability", "op": "==", "value": "8.9", "source": "Ada Lovelace (PK)"},
+    {"path": "gpu.host_link.max_gen", "op": "==", "value": 4, "source": "PCIe 4.0 x16 [H-14]"},
+    {"path": "gpu.host_link.max_width", "op": "==", "value": 16, "source": "PCIe 4.0 x16 [H-14]"},
+    {"path": "backend.cuda.usable", "op": "==", "value": true, "source": "driver + CUDA engine build installed (runbook §1)"},
+    {"path": "gpu.bandwidth_gbs", "op": "between", "value": [1000, 1010], "source": "1008 GB/s theoretical [H-12]"}
+  ]
+}

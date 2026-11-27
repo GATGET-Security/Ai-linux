@@ -1,7 +1,7 @@
 .\" SPDX-License-Identifier: MIT
-.TH AILX 1 "2026-11-27" "ailx 0.1" "AI Linux"
+.TH AILX 1 "2026-11-27" "ailx 0.2" "AI Linux"
 .SH NAME
-ailx \- AI Linux system layer: inventory, diagnosis, profiles, transactions, engines
+ailx \- AI Linux system layer and compute engine: capabilities, models, runtime, tuning, profiles
 .SH SYNOPSIS
 .B ailx
 [\fB\-\-json\fR] [\fB\-\-no\-nvml\fR] \fICOMMAND\fR ...
@@ -10,6 +10,14 @@ Commands: \fBstatus\fR, \fBhardware\fR, \fBresources\fR, \fBdoctor\fR, \fBknobs\
 \fBprofile\fR list|show|plan|apply, \fBconfirm\fR, \fBrollback\fR [\-\-recover], \fBhistory\fR,
 \fBengine\fR list|install|verify|use|remove|env, \fBimage\fR status|stage|confirm|rollback,
 \fBsystem\fR plan|install|uninstall|sudoers.
+.PP
+Compute engine: \fBcaps\fR (hardware capabilities and usable backends),
+\fBmodel\fR list|inspect|plan (GGUF/safetensors analysis, placement, memory, bottlenecks),
+\fBrecommend\fR, \fBrun\fR start|status|list|logs|stop|rm (managed llama-server instances with
+admission control, priorities and optional, experimental CPU placement),
+\fBtune\fR plan|calibrate|run|list|show|verify|reset (screening, confirmation and adoption against the
+engine defaults; lossy candidates need \fB\-\-allow\-lossy\fR and a quality reference).
+Memory predictions are uncalibrated estimates until hardware-validated.
 .PP
 Profile settings that are not hardware-validated are experimental and are only applied with
 \fB\-\-include\-experimental\fR. Every change is journaled, verified and can be rolled back;
