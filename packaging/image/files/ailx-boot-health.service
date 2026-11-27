@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: MIT
+[Unit]
+Description=AI Linux boot health check (confirms an A/B trial boot or reboots to fall back)
+After=multi-user.target ssh.service
+ConditionKernelCommandLine=ailx.trial=1
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '/usr/bin/ailx --no-nvml image health || { echo "trial boot unhealthy, rebooting to the default slot"; systemctl reboot; }'
+
+[Install]
+WantedBy=multi-user.target

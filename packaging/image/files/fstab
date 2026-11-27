@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Root is mounted from the kernel command line (root=LABEL=ailx-rootA|B); slots stay identical images.
+LABEL=ailx-data  /data          ext4  defaults,x-systemd.device-timeout=60s          0 2
+/data/ailx       /var/lib/ailx  none  bind,x-systemd.requires-mounts-for=/data       0 0
+/data/home       /home          none  bind,x-systemd.requires-mounts-for=/data       0 0
+LABEL=AILX-ESP   /boot/efi      vfat  umask=0077,x-systemd.device-timeout=60s        0 1

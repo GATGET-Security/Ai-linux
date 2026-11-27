@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# CPU-only CI for the Phase 1.1 measurement foundation. No GPU, no hardware claims.
+# CPU-only CI (measurement foundation, system layer, packaging). No GPU, no hardware claims.
 name: ci
 
 on:
@@ -30,8 +30,8 @@ jobs:
         run: python -m pip install -e ".[dev]" cyclonedx-bom
       - name: Lint
         run: |
-          ruff check src tests ../tools ../helpers
-          ruff format --check src tests ../tools ../helpers
+          ruff check src tests ../tools ../helpers ../packaging
+          ruff format --check src tests ../tools ../helpers ../packaging
       - name: Type check (mypy strict)
         run: mypy
       - name: Tests (schemas, probe, statistics incl. A/A + 5% simulations, telemetry, store, CLI e2e)
@@ -90,3 +90,32 @@ jobs:
           ailx --no-nvml doctor || true
           AILX_ROOT="$RUNNER_TEMP/root" ailx system install --with-sudoers
           AILX_ROOT="$RUNNER_TEMP/root" ailx system uninstall --purge
+
+  deb:
+    runs-on: ubuntu-24.04
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Build the .deb twice (reproducibility) and two versions for the upgrade test
+        run: |
+          python3 packaging/deb/build_deb.py --version 0.1.0-1 --out out/a
+          python3 packaging/deb/build_deb.py --version 0.1.0-1 --out out/b
+          cmp out/a/ailx_0.1.0-1_all.deb out/b/ailx_0.1.0-1_all.deb
+          python3 packaging/deb/build_deb.py --version 0.1.1-1 --out out/a
+          sha256sum out/a/*.deb
+      - name: Lintian
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q lintian
+          lintian --info --suppress-tags initial-upload-closes-no-bugs out/a/ailx_0.1.0-1_all.deb
+      - name: Lifecycle in Ubuntu 26.04 (install, use, upgrade with modified conffile, remove, purge)
+        run: |
+          docker run --rm -v "$PWD:/src:ro" ubuntu:26.04 sh -euc '
+            apt-get update -q && DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends \
+              python3 python3-numpy python3-scipy python3-jsonschema python3-zstandard python3-rfc8785 systemd sudo
+            sh /src/packaging/deb/test_lifecycle.sh / /src/out/a/ailx_0.1.0-1_all.deb /src/out/a/ailx_0.1.1-1_all.deb'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ailx-deb
+          path: out/a/*.deb

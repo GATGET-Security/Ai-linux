@@ -1,0 +1,22 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+set -e
+case "$1" in
+  remove|deconfigure)
+    # Restore values changed by an active profile before the tooling disappears (best effort; never blocks removal).
+    if command -v ailx >/dev/null 2>&1 && [ -f /var/lib/ailx/state.json ] && grep -q '"active_txn": "txn-' /var/lib/ailx/state.json; then
+      ailx --no-nvml rollback || echo "ailx: WARNING: could not roll back the active profile; see /var/lib/ailx/transactions" >&2
+    fi
+    if [ -d /run/systemd/system ]; then
+      deb-systemd-invoke stop ailx-rapl-collector.service >/dev/null || true
+    fi
+    if command -v deb-systemd-helper >/dev/null 2>&1; then
+      deb-systemd-helper disable ailx-rapl-collector.service >/dev/null || true
+    fi
+    find /usr/lib/python3/dist-packages/ailx -name __pycache__ -type d -prune -exec rm -rf {} + 2>/dev/null || true
+    ;;
+  upgrade)
+    find /usr/lib/python3/dist-packages/ailx -name __pycache__ -type d -prune -exec rm -rf {} + 2>/dev/null || true
+    ;;
+esac
+exit 0

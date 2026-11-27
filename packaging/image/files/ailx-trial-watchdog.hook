@@ -1,0 +1,10 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# initramfs-tools hook: include (but do not auto-load) watchdog drivers for A/B trial boots.
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in prereqs) prereqs; exit 0 ;; esac
+. /usr/share/initramfs-tools/hook-functions
+for m in i6300esb iTCO_wdt sp5100_tco wdat_wdt softdog; do
+	manual_add_modules "$m"
+done

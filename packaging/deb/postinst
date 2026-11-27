@@ -1,0 +1,24 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+set -e
+case "$1" in
+  configure)
+    if command -v systemd-sysusers >/dev/null 2>&1; then
+      systemd-sysusers ailx.conf
+    elif ! getent group ailx >/dev/null; then
+      addgroup --system ailx
+    fi
+    systemd-tmpfiles --create ailx.conf || true
+    python3 -I -m compileall -q /usr/lib/python3/dist-packages/ailx >/dev/null 2>&1 || true
+    if [ -d /run/systemd/system ]; then
+      systemctl --system daemon-reload >/dev/null || true
+      deb-systemd-invoke try-restart ailx-rapl-collector.service >/dev/null || true
+    fi
+    if [ -n "$2" ]; then
+      echo "ailx: upgraded from $2; profile journal and engines in /var/lib/ailx are kept"
+    else
+      echo "ailx: installed. Add operators to group 'ailx'; optional: 'ailx system sudoers enable'."
+    fi
+    ;;
+esac
+exit 0

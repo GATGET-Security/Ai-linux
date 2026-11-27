@@ -1,0 +1,14 @@
+.\" SPDX-License-Identifier: MIT
+.TH AILX-BENCH 1 "2026-11-27" "ailx 0.1" "AI Linux"
+.SH NAME
+ailx-bench \- reproducible benchmark campaigns for local AI workloads
+.SH SYNOPSIS
+.B ailx-bench
+[\fB\-\-store\fR \fIDIR\fR] \fICOMMAND\fR ...
+.SH DESCRIPTION
+Commands: \fBprobe\fR, \fBrun\fR, \fBcampaign\fR plan|run|analyze|all, \fBreport\fR,
+\fBstore\fR verify|list, \fBpower\fR, \fBquality\fR reference|evaluate, \fBvalidate\-claims\fR,
+\fBtelemetry\fR check. Campaigns are pre-registered, run in randomized interleaved order and
+analysed with nonparametric statistics; simulated results are always labeled.
+.SH SEE ALSO
+ailx(1)

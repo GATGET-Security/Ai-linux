@@ -1,0 +1,20 @@
+.\" SPDX-License-Identifier: MIT
+.TH AILX 1 "2026-11-27" "ailx 0.1" "AI Linux"
+.SH NAME
+ailx \- AI Linux system layer: inventory, diagnosis, profiles, transactions, engines
+.SH SYNOPSIS
+.B ailx
+[\fB\-\-json\fR] [\fB\-\-no\-nvml\fR] \fICOMMAND\fR ...
+.SH DESCRIPTION
+Commands: \fBstatus\fR, \fBhardware\fR, \fBresources\fR, \fBdoctor\fR, \fBknobs\fR,
+\fBprofile\fR list|show|plan|apply, \fBconfirm\fR, \fBrollback\fR [\-\-recover], \fBhistory\fR,
+\fBengine\fR list|install|verify|use|remove|env, \fBimage\fR status|stage|confirm|rollback,
+\fBsystem\fR plan|install|uninstall|sudoers.
+.PP
+Profile settings that are not hardware-validated are experimental and are only applied with
+\fB\-\-include\-experimental\fR. Every change is journaled, verified and can be rolled back;
+privileged writes go through \fI/usr/libexec/ailx/ailx-apply-helper\fR.
+.SH FILES
+/etc/ailx/ailx.toml, /var/lib/ailx (state, engines, models)
+.SH SEE ALSO
+ailx-bench(1)

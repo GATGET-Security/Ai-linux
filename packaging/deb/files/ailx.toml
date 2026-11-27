@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MIT
+# AI Linux system layer configuration (dpkg conffile).
+[paths]
+state_dir = "/var/lib/ailx"
+engines_dir = "/var/lib/ailx/engines"
+models_dir = "/var/lib/ailx/models"
+helper = "/usr/libexec/ailx/ailx-apply-helper"

@@ -12,3 +12,5 @@ dist/
 ailx-store/
 *.gguf
 *.kld
+# image/package build outputs
+/out/

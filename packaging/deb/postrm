@@ -1,0 +1,20 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+set -e
+case "$1" in
+  purge)
+    # State and engines are package-managed data; models are user data and are kept.
+    rm -rf /var/lib/ailx/transactions /var/lib/ailx/state.json /var/lib/ailx/lock /var/lib/ailx/hash-cache.json \
+           /var/lib/ailx/engines /var/lib/ailx/profiles
+    if [ -f /etc/sudoers.d/ailx ] && grep -q "ailx system sudoers enable" /etc/sudoers.d/ailx; then
+      rm -f /etc/sudoers.d/ailx
+    fi
+    rmdir /etc/ailx 2>/dev/null || true
+    if [ -d /var/lib/ailx/models ] && [ -n "$(ls -A /var/lib/ailx/models 2>/dev/null)" ]; then
+      echo "ailx: kept model files in /var/lib/ailx/models (user data)"
+    else
+      rmdir /var/lib/ailx/models /var/lib/ailx 2>/dev/null || true
+    fi
+    ;;
+esac
+exit 0
