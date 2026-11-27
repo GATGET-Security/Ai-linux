@@ -25,6 +25,9 @@ PREFIXES = {
     "ailx.campaign/v0": "cmp",
     "ailx.result/v0": "res",
     "ailx.analysis/v0": "ana",
+    "ailx.capabilities/v0": "cap",
+    "ailx.model-analysis/v0": "mdl",
+    "ailx.tuning-record/v0": "tun",
 }
 SCHEMA_FILES = {
     "ailx.hardware-profile/v0": "hardware-profile.v0.schema.json",
@@ -37,6 +40,10 @@ SCHEMA_FILES = {
     "ailx.sample-stream/v0": "sample-stream.v0.schema.json",
     "ailx.profile/v0": "profile.v0.schema.json",
     "ailx.engine-manifest/v0": "engine-manifest.v0.schema.json",
+    "ailx.capabilities/v0": "capabilities.v0.schema.json",
+    "ailx.model-analysis/v0": "model-analysis.v0.schema.json",
+    "ailx.tuning-record/v0": "tuning-record.v0.schema.json",
+    "ailx.runtime-instance/v0": "runtime-instance.v0.schema.json",
 }
 
 

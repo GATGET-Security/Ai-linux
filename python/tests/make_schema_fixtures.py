@@ -164,5 +164,113 @@ def main() -> None:
     print(f"fixtures written to {OUT}")
 
 
+def compute_fixtures() -> None:
+    """Compute-engine schemas (capabilities, model analysis, runtime instance, tuning record)."""
+    from compute_fix import dense_8b, workstation_caps
+
+    from ailx.compute.planner import Request, plan
+
+    def setk(d: dict, key: str, val: object) -> dict:  # type: ignore[type-arg]
+        out = copy.deepcopy(d)
+        out[key] = val
+        return out
+
+    with tempfile.TemporaryDirectory() as tmp:
+        caps = workstation_caps(build_two_ccd_desktop(Path(tmp) / "desktop"))
+    caps["collected_at"] = "2026-11-27T00:00:00Z"
+    ana = dense_8b()
+    p = plan(caps, ana, Request(ctx=8192))
+    inst = {
+        "schema": "ailx.runtime-instance/v0",
+        "name": "chat",
+        "cmd": ["/var/lib/ailx/engines/llama.cpp/98cc730cc8f8-cuda/bin/llama-server", "-m", "/models/m.gguf"],
+        "host": "127.0.0.1",
+        "port": 8080,
+        "model": {"path": "/models/m.gguf", "id": ana["id"], "name": ana["name"]},
+        "engine": {"engine": "llama.cpp", "install_id": "98cc730cc8f8-cuda", "binary": "/x/llama-server"},
+        "config_source": "engine-default",
+        "engine_config": p["engine_config"],
+        "explicit_settings": {},
+        "priority": "interactive",
+        "placement": {"policy": "none", "cpus": None, "experimental": False},
+        "process": {"nice": 0, "oom_score_adj": 0},
+        "plan": {
+            "mode": p["mode"],
+            "device": p["device"],
+            "backend": p["backend"],
+            "host_bytes": p["memory"]["host_bytes"],
+            "device_bytes": p["memory"]["device_bytes"],
+            "estimate": p["estimate"],
+        },
+        "admission": {"admitted": True, "reasons": []},
+        "pid": 4242,
+        "start_ticks": 123456,
+        "uid": 1000,
+        "log": "/var/lib/ailx/runtime/logs/chat.log",
+        "status": "running",
+        "started_at": "2026-11-27T00:00:00Z",
+        "stopped_at": None,
+        "stop_reason": None,
+    }
+    tun = {
+        "schema": "ailx.tuning-record/v0",
+        "id": "tun-" + "0" * 64,
+        "key": "0" * 24,
+        "created_at": "2026-11-27T00:00:00Z",
+        "hardware_profile_id": caps["hardware_profile_id"],
+        "capabilities_id": caps["id"],
+        "engine": {"engine": "llama.cpp", "install_id": "98cc730cc8f8-cuda"},
+        "model": {"id": ana["id"], "name": ana["name"], "path": "/models/m.gguf"},
+        "objective": "decode",
+        "spec": {"objective": "decode"},
+        "baseline": {"id": "engine-default", "engine_config": {}},
+        "candidates": [
+            {"id": "fa-on", "param_overrides": {"flash_attn": "on"}, "class": "lossless", "experimental": False}
+        ],
+        "status": "adopted",
+        "decision": "confirmed improvement without guard regressions (constructed fixture)",
+        "adopted": {
+            "candidate": "fa-on",
+            "class": "lossless",
+            "experimental": False,
+            "engine_config": {"flash_attn": "on"},
+            "placement_cpu_mask": None,
+            "effect": {"ratio": 1.1, "improvement": 0.1, "improvement_ci": [0.05, 0.15], "verdict": "improvement"},
+        },
+        "evidence": {
+            "store": "/var/lib/ailx/store",
+            "confirm_analysis": "ana-" + "1" * 64,
+            "calibrated": True,
+            "measurement_kind": "hardware",
+            "quality_gate": None,
+        },
+        "history": [{"at": "2026-11-27T00:00:00Z", "event": "adopted"}],
+    }
+    lossy = copy.deepcopy(tun)
+    lossy["adopted"]["class"] = "lossy"  # lossy adoption without a passed quality gate must be rejected
+    for kind, schema, name, doc in [
+        ("valid", "capabilities.v0", "workstation-7950x3d-4090", caps),
+        ("valid", "model-analysis.v0", "dense-8b-synthetic", ana),
+        ("valid", "runtime-instance.v0", "running", inst),
+        ("valid", "tuning-record.v0", "adopted-lossless", tun),
+        ("invalid", "capabilities.v0", "bad-backend", setk(caps, "backends", [{"backend": "opencl"}])),
+        ("invalid", "model-analysis.v0", "bad-format", setk(ana, "format", "onnx")),
+        ("invalid", "runtime-instance.v0", "bad-priority", setk(inst, "priority", "realtime")),
+        ("invalid", "tuning-record.v0", "lossy-without-quality-gate", lossy),
+        (
+            "invalid",
+            "tuning-record.v0",
+            "adopted-without-confirmation",
+            setk(tun, "evidence", {"store": "/var/lib/ailx/store"}),
+        ),
+    ]:
+        dump(kind, schema, name, doc)
+    print("compute fixtures written")
+
+
 if __name__ == "__main__":
-    main()
+    if sys.argv[1:] == ["--only", "compute"]:
+        compute_fixtures()
+    else:
+        main()
+        compute_fixtures()

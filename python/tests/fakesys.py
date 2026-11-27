@@ -33,7 +33,22 @@ def build_two_ccd_desktop(root: Path) -> Path:
         w(root, base + "/shared_cpu_list", "0-7,16-23" if ccd0 else "8-15,24-31")
         w(root, base + "/size", "98304K" if ccd0 else "32768K")
         w(root, f"/sys/devices/system/cpu/cpu{cpu}/cache/index0/level", "1")
+        w(root, f"/sys/devices/system/cpu/cpu{cpu}/cache/index0/type", "Data")
+        w(root, f"/sys/devices/system/cpu/cpu{cpu}/cache/index0/size", "32K")
+        w(root, f"/sys/devices/system/cpu/cpu{cpu}/cache/index2/level", "2")
+        w(root, f"/sys/devices/system/cpu/cpu{cpu}/cache/index2/type", "Unified")
+        w(root, f"/sys/devices/system/cpu/cpu{cpu}/cache/index2/size", "1024K")
+        w(root, f"/sys/devices/system/cpu/cpu{cpu}/topology/core_id", str(core))
+        w(root, f"/sys/devices/system/cpu/cpu{cpu}/topology/physical_package_id", "0")
+        w(root, f"/sys/devices/system/cpu/cpu{cpu}/topology/thread_siblings_list", f"{core},{core + 16}")
+        # synthetic values: the frequency CCD clocks higher than the V-Cache CCD
+        w(root, f"/sys/devices/system/cpu/cpu{cpu}/cpufreq/cpuinfo_max_freq", "5250000" if ccd0 else "5758000")
     w(root, "/sys/devices/system/node/node0/cpulist", "0-31")
+    w(
+        root,
+        "/sys/devices/system/node/node0/meminfo",
+        "Node 0 MemTotal:       65536000 kB\nNode 0 MemFree:        60000000 kB",
+    )
     dev = root / "sys/devices/pci0000:00/0000:00:01.1/0000:01:00.0"
     for k, v in {
         "vendor": "0x10de",

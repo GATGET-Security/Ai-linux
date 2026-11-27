@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/tuning-record.v0.schema.json",
+  "title": "AI Linux tuning record v0",
+  "description": "Outcome of an autotuning run for one (hardware profile, engine build, model, objective): candidates, decision, adopted engine configuration (if any) and the campaign/analysis IDs in the result store that justify it. 'adopted' is only set after a confirmatory campaign; lossy candidates additionally need a passed KLD quality gate. Status 'baseline' or 'reverted' means the engine defaults are in force.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "key", "created_at", "hardware_profile_id", "capabilities_id", "engine", "model", "objective", "spec", "baseline", "candidates", "status", "adopted", "evidence", "history"],
+  "properties": {
+    "schema": {"const": "ailx.tuning-record/v0"},
+    "id": {"type": "string", "pattern": "^tun-[0-9a-f]{64}$"},
+    "key": {"type": "string", "pattern": "^[0-9a-f]{24}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "hardware_profile_id": {"type": "string", "pattern": "^hwp-[0-9a-f]{64}$"},
+    "capabilities_id": {"type": "string", "pattern": "^cap-[0-9a-f]{64}$"},
+    "engine": {"type": "object", "required": ["engine", "install_id"]},
+    "model": {"type": "object", "required": ["id", "path"], "properties": {"id": {"type": "string", "pattern": "^mdl-[0-9a-f]{64}$"}}},
+    "objective": {"enum": ["decode", "prefill"]},
+    "spec": {"type": "object"},
+    "baseline": {"type": "object", "required": ["id"]},
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "param_overrides", "class", "experimental"],
+        "properties": {"class": {"enum": ["lossless", "lossy"]}, "experimental": {"type": "boolean"}}
+      }
+    },
+    "status": {"enum": ["running", "adopted", "baseline", "reverted"]},
+    "decision": {"type": "string"},
+    "adopted": {
+      "type": ["object", "null"],
+      "required": ["candidate", "class", "experimental", "engine_config", "effect"],
+      "properties": {
+        "class": {"enum": ["lossless", "lossy"]},
+        "experimental": {"type": "boolean"},
+        "engine_config": {"type": "object"},
+        "placement_cpu_mask": {"type": ["string", "null"]}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["store"],
+      "properties": {
+        "screening_campaign": {"type": "string", "pattern": "^cmp-[0-9a-f]{64}$"},
+        "screening_analysis": {"type": "string", "pattern": "^ana-[0-9a-f]{64}$"},
+        "confirm_campaign": {"type": "string", "pattern": "^cmp-[0-9a-f]{64}$"},
+        "confirm_analysis": {"type": "string", "pattern": "^ana-[0-9a-f]{64}$"},
+        "measurement_kind": {"enum": ["hardware", "simulated", "mixed"]},
+        "calibrated": {"type": "boolean"},
+        "quality_gate": {"type": ["object", "null"]}
+      }
+    },
+    "history": {"type": "array", "items": {"type": "object", "required": ["at", "event"], "properties": {"event": {"enum": ["adopted", "baseline-kept", "verified", "reverted"]}}}}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "adopted"}}}, "then": {"properties": {"adopted": {"type": "object"}, "evidence": {"required": ["store", "confirm_analysis"]}}}},
+    {"if": {"properties": {"adopted": {"type": "object", "properties": {"class": {"const": "lossy"}}, "required": ["class"]}}}, "then": {"properties": {"evidence": {"required": ["store", "quality_gate"], "properties": {"quality_gate": {"type": "object", "required": ["verdict"], "properties": {"verdict": {"const": "no-detectable-quality-change"}}}}}}}}
+  ]
+}

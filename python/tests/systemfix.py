@@ -19,8 +19,13 @@ if any(a.startswith("--query-gpu=") for a in args):
     fields = next(a for a in args if a.startswith("--query-gpu=")).split("=", 1)[1].split(",")
     key = {"index": "index", "power.limit": "limit", "power.default_limit": "default",
            "power.min_limit": "min", "power.max_limit": "max"}
+    extra = {"name": "NVIDIA GeForce RTX 4090", "pci.bus_id": "00000000:01:00.0", "memory.total": 24564,
+             "memory.used": 400, "memory.free": 24164, "driver_version": "580.00", "compute_cap": "8.9",
+             "clocks.max.memory": 10501, "pcie.link.gen.max": 4, "pcie.link.width.max": 16}
+    if any(f not in key and f not in extra and f not in g for f in fields for g in gpus):
+        print("Field is not a valid field to query."); sys.exit(2)
     for g in gpus:
-        print(", ".join(str(g[key[f]]) for f in fields))
+        print(", ".join(str(g[key[f]] if f in key else g.get(f, extra.get(f))) for f in fields))
     sys.exit(0)
 if "-pl" in args:
     w = float(args[args.index("-pl") + 1])
