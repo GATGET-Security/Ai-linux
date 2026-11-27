@@ -1,6 +1,6 @@
 # Reference Image Prototype (Phase 1.4): Packaging, A/B Image, Recovery
 
-> Status: experimental prototype (ADR-0012 proposed), QEMU-validated only · Last updated: 2026-11-27
+> Status: experimental prototype (ADR-0012 accepted as experimental architecture), QEMU-validated only · Last updated: 2026-11-27
 
 ## Summary
 

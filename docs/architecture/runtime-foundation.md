@@ -1,6 +1,6 @@
 # Runtime Foundation (Phase 1.3): the `ailx` System Layer
 
-> Status: Implemented (build-heavy; CPU-integration-tested; GPU paths hw-queued) · Last updated: 2026-11-27 · Related ADRs: 0004, 0005, 0007, 0008, 0010, 0011 (proposed)
+> Status: Implemented (build-heavy; CPU-integration-tested; GPU paths hw-queued) · Last updated: 2026-11-27 · Related ADRs: 0004, 0005, 0007, 0008, 0010, 0011
 
 ## Summary
 

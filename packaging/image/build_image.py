@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 """Build the experimental headless AI Linux reference image (Ubuntu 26.04 base, A/B root slots).
 
-This is a **prototype** (ADR-0012, proposed) — not the base-distribution decision of ADR-0005.
+This is a **prototype** (ADR-0012, experimental architecture) — not the base-distribution decision of ADR-0005.
 
 Outputs (in --out):
   ailx-<version>-<flavor>.raw     GPT disk: ESP | rootA | rootB | data   (bootable via UEFI, shim+GRUB signed by Ubuntu)
@@ -462,7 +462,7 @@ def main() -> None:
         },
         "build_seconds": round(time.time() - t0),
         "notes": [
-            "experimental prototype (ADR-0012, proposed); not hardware-validated",
+            "experimental prototype (ADR-0012); not hardware-validated",
             "byte-identical rebuilds additionally need a pinned --mirror snapshot",
         ],
     }

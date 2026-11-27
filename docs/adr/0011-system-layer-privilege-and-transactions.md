@@ -1,6 +1,6 @@
 # ADR-0011: System layer — unprivileged planner, allow-listed privileged helper, journaled transactions
 
-> Status: Proposed · Date: 2026-11-27 · Deciders: maintainers (pending)
+> Status: Accepted (maintainer decision 2026-11-27, incl. the Phase 1.4 review amendment) · Date: 2026-11-27 · Deciders: maintainers
 
 ## Context
 
@@ -20,7 +20,7 @@ surface [S-01].
 3. **Unprivileged planner + single-request privileged helper** with its own
    allow-list, invoked via `sudo -n` (or direct writes when already root).
 
-## Decision (proposed)
+## Decision
 
 Option 3 for Phase 1.x:
 
@@ -45,7 +45,7 @@ Option 3 for Phase 1.x:
   (`ailx system install --with-sudoers`).
 - Runtime-only changes are lost on reboot — intentional until validated.
 
-## Review amendment (Phase 1.4, still Proposed)
+## Review amendment (Phase 1.4)
 
 A trust-boundary review (`docs/architecture/trust-boundary-review.md`) found
 and fixed seven issues; the decision itself is unchanged:

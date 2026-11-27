@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""A/B system versions for the AI Linux reference image (experimental prototype, ADR-0012 proposed).
+"""A/B system versions for the AI Linux reference image (experimental prototype, ADR-0012).
 
 Disk layout: ESP (``AILX-ESP``) · root slot A (``ailx-rootA``) · root slot B (``ailx-rootB``) ·
 data (``ailx-data``: /var/lib/ailx state, engines, models; /home; SSH host keys).

@@ -1,6 +1,6 @@
 # ADR-0012: Experimental reference image — Ubuntu 26.04 base, A/B root slots, separate data partition
 
-> Status: Proposed · Date: 2026-11-27 · Deciders: maintainers (pending)
+> Status: Accepted as the experimental image architecture (maintainer decision 2026-11-27); not a final base-distribution decision (ADR-0005 bake-off still decides) · Date: 2026-11-27 · Deciders: maintainers
 
 ## Context
 
@@ -20,7 +20,7 @@ The reference platform is Ubuntu 26.04 + NVIDIA (maintainer decision).
    framework): Ubuntu's signed shim/GRUB and kernel, a GRUB environment block
    for one-time trial boots, a data partition that updates never touch.
 
-## Decision (proposed)
+## Decision
 
 Option 3 as an **experimental prototype**, alongside option 1 (the .deb
 remains the primary delivery, ADR-0005):
