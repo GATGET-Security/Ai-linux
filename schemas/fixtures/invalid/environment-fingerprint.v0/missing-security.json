@@ -22,11 +22,11 @@
   },
   "hardware_profile_id": "hwp-d46694712fd6477da4becc44827fc9f4815ed58342a089fa153812e95b957518",
   "harness": {
-    "git_sha": "80b228155728908af50dc5cdad5f27edd5b92b67",
+    "git_sha": "bbf269316d824d7b61d8b3dc2b2d2591f0d48e57",
     "python": "3.13.18",
     "version": "0.1.0"
   },
-  "id": "env-2c1d85f96631ac03804dff3987b4ca8ab5b071d45c96424b406df4ef2da4cf5f",
+  "id": "env-62c7cfed298e054a6c218eea3ac6adfa1f5d6b8d1b4831253e47bcafc1698bf9",
   "kernel": {
     "cmdline": "BOOT_IMAGE=/vmlinuz-7.0.0-15-generic root=UUID=x ro quiet splash",
     "config_sha256": "c6a90b53f0c5d6871590647a01ecdfb328436c20df1b16cc76fb64eb970fa616",

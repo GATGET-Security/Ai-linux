@@ -158,6 +158,7 @@ def collect_fingerprint(
     runtime_bundles: Iterable[Doc] = (),
     use_nvml: bool = True,
     hash_cache: HashCache | None = None,
+    platform_state: Doc | None = None,
 ) -> Doc:
     root = Root(base)
     unavailable: dict[str, str] = {}
@@ -281,4 +282,6 @@ def collect_fingerprint(
         "harness": {"version": __version__, "git_sha": _git_sha(), "python": platform.python_version()},
         "unavailable": unavailable,
     }
+    if platform_state is not None:
+        doc["platform"] = platform_state
     return seal(doc)

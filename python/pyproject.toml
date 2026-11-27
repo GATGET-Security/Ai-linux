@@ -25,12 +25,14 @@ dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "gguf>=0.10", "nvidia-ml-py>=12.5
 
 [project.scripts]
 ailx-bench = "ailx.cli:main"
+ailx = "ailx.system.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ailx"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "../schemas" = "ailx/_schemas"
+"../helpers" = "ailx/_helpers"
 
 [tool.ruff]
 line-length = 120

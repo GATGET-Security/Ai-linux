@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import copy
 import json
 from collections import defaultdict
@@ -17,7 +18,9 @@ from ailx.probe import collect_fingerprint, collect_hardware_profile
 from ailx.runner import execute_run
 from ailx.stats import compare, fdr_bh, noise_floor_from_aa, rmit_schedule
 from ailx.store import Store
-from ailx.workloads import apply_overrides, load_workload, resolve, workload_sha256
+from ailx.system.integration import platform_info, profile_applied
+from ailx.system.paths import load_layout
+from ailx.workloads import apply_overrides, bundle, load_workload, resolve, workload_sha256
 
 DECISION_RULE = (
     "Per arm vs baseline and metric: Mann-Whitney U (two-sided, alpha; BH-adjusted if fdr=bh) and a BCa "
@@ -78,7 +81,7 @@ def plan(spec: Doc, store: Store, base_dir: Path | None = None, calibration_id: 
     }
     if doc["purpose"] == "aa-calibration":
         overrides = [json.dumps(a.get("param_overrides", {}), sort_keys=True) for a in arms]
-        if len(set(overrides)) != 1 or any(a.get("setup_commands") or a.get("env") for a in arms):
+        if len(set(overrides)) != 1 or any(a.get("setup_commands") or a.get("env") or a.get("profile") for a in arms):
             raise ValueError("aa-calibration campaigns require identical arms")
     sealed = seal(doc)
     store.put(sealed)
@@ -94,54 +97,63 @@ def run(campaign_id: str, store: Store, log: Any = print, use_nvml: bool = True)
     done = {r["order_index"] for r in store.results_for(campaign_id)}
     models = [resolve(workload["model"]["path"])] if workload.get("model") else []
     fp_cache: dict[str, str] = {}
+    layout = load_layout()
+    rb = bundle(workload["runtime"]["binary"])
+    if workload["runtime"].get("bundle_digest"):
+        rb["digest"] = workload["runtime"]["bundle_digest"]
 
     def fingerprint(arm_id: str) -> str:
-        if arm_id not in fp_cache or arms[arm_id].get("setup_commands"):
+        """Captured after the arm's profile/hooks are in place, so it records the measured state."""
+        arm = arms[arm_id]
+        if arm_id not in fp_cache or arm.get("setup_commands") or arm.get("profile"):
             fp = collect_fingerprint(
-                hwp["id"],
-                models=models,
-                use_nvml=use_nvml,
-                runtime_bundles=[
-                    {"name": workload["runtime"]["binary"], "digest": workload["runtime"].get("bundle_digest")}
-                ],
+                hwp["id"], models=models, use_nvml=use_nvml, runtime_bundles=[rb], platform_state=platform_info(layout)
             )
             store.put(fp)
             fp_cache[arm_id] = fp["id"]
         return fp_cache[arm_id]
 
+    def arm_context(arm: Doc) -> contextlib.AbstractContextManager[object]:
+        prof = arm.get("profile")
+        if not prof:
+            return contextlib.nullcontext()
+        return profile_applied(layout, prof["name"], bool(prof.get("include_experimental")))
+
     for arm_id, arm in arms.items():  # warmup runs are executed but not stored as results
         wl = apply_overrides(workload, arm.get("param_overrides"))
         for i in range(workload["warmup_runs"]):
             log(f"warmup {arm_id} {i + 1}/{workload['warmup_runs']}")
-            execute_run(
-                wl,
-                Store(store.root / "warmup"),
-                hwp["id"],
-                fingerprint(arm_id),
-                order_index=-1 - i,
-                seed=cmp["design"]["seed"],
-                env=arm.get("env"),
-                setup_commands=arm.get("setup_commands"),
-            )
+            with arm_context(arm):
+                execute_run(
+                    wl,
+                    Store(store.root / "warmup"),
+                    hwp["id"],
+                    fingerprint(arm_id),
+                    order_index=-1 - i,
+                    seed=cmp["design"]["seed"],
+                    env=arm.get("env"),
+                    setup_commands=arm.get("setup_commands"),
+                )
     ids: list[str] = []
     for slot in cmp["schedule"]:
         if slot["index"] in done:
             continue
         arm = arms[slot["arm"]]
         wl = apply_overrides(workload, arm.get("param_overrides"))
-        res = execute_run(
-            wl,
-            store,
-            hwp["id"],
-            fingerprint(slot["arm"]),
-            order_index=slot["index"],
-            seed=cmp["design"]["seed"],
-            campaign_id=campaign_id,
-            arm_id=slot["arm"],
-            block=slot["block"],
-            env=arm.get("env"),
-            setup_commands=arm.get("setup_commands"),
-        )
+        with arm_context(arm):
+            res = execute_run(
+                wl,
+                store,
+                hwp["id"],
+                fingerprint(slot["arm"]),
+                order_index=slot["index"],
+                seed=cmp["design"]["seed"],
+                campaign_id=campaign_id,
+                arm_id=slot["arm"],
+                block=slot["block"],
+                env=arm.get("env"),
+                setup_commands=arm.get("setup_commands"),
+            )
         log(f"[{slot['index'] + 1}/{len(cmp['schedule'])}] arm={slot['arm']} status={res['status']} {res['id'][:16]}")
         ids.append(res["id"])
     return ids
@@ -159,6 +171,7 @@ def _fingerprint_differences(store: Store, by_arm: dict[str, list[Doc]]) -> dict
         "memory_policy",
         "services",
         "accelerator_state",
+        "platform",
         "drivers",
         "runtime_bundles",
         "models",

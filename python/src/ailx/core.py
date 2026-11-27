@@ -35,6 +35,8 @@ SCHEMA_FILES = {
     "ailx.analysis/v0": "analysis.v0.schema.json",
     "ailx.knob/v0": "knob.v0.schema.json",
     "ailx.sample-stream/v0": "sample-stream.v0.schema.json",
+    "ailx.profile/v0": "profile.v0.schema.json",
+    "ailx.engine-manifest/v0": "engine-manifest.v0.schema.json",
 }
 
 

@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/engine-manifest.v0.schema.json",
+  "title": "AI Linux engine install manifest v0",
+  "description": "Reproducible description of one isolated engine installation; the manifest sha256 is the runtime-bundle digest used in fingerprints.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "engine",
+    "install_id",
+    "kind",
+    "version",
+    "variant",
+    "source",
+    "build",
+    "toolchain",
+    "artifacts",
+    "installed_at"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ailx.engine-manifest/v0"
+    },
+    "engine": {
+      "type": "string"
+    },
+    "install_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "kind": {
+      "enum": [
+        "cmake",
+        "pip"
+      ]
+    },
+    "version": {
+      "type": "string"
+    },
+    "variant": {
+      "type": "string"
+    },
+    "licence": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source": {
+      "type": "object"
+    },
+    "build": {
+      "type": "object"
+    },
+    "toolchain": {
+      "type": "object"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "sha256",
+          "size"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "size": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "installed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "host": {
+      "type": "object"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

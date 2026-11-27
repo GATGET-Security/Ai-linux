@@ -48,41 +48,45 @@ jobs:
   e2e-llamacpp:
     runs-on: ubuntu-24.04
     needs: checks
+    env:
+      AILX_ENGINES_DIR: ${{ github.workspace }}/engines
+      AILX_STATE_DIR: ${{ github.workspace }}/ailx-state
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Cache llama.cpp build
+      - name: Install harness and system layer
+        run: python -m pip install -e "python[dev]"
+      - name: Cache engine installation
         id: cache
         uses: actions/cache@v4
         with:
-          path: llama.cpp/build/bin
-          key: llama-cpp-cpu-${{ env.LLAMA_CPP_COMMIT }}
-      - name: Fetch llama.cpp (pinned)
-        run: |
-          git init llama.cpp && cd llama.cpp
-          git remote add origin https://github.com/ggml-org/llama.cpp
-          git fetch --depth 1 origin "$LLAMA_CPP_COMMIT" && git checkout FETCH_HEAD
-      - name: Build llama-bench / llama-perplexity / llama-quantize (CPU)
+          path: engines
+          key: ailx-engine-llama.cpp-cpu-${{ env.LLAMA_CPP_COMMIT }}-${{ hashFiles('python/src/ailx/system/data/engines.json') }}
+      - name: ailx engine install llama.cpp (pinned, CPU, isolated, with build manifest)
         if: steps.cache.outputs.cache-hit != 'true'
+        run: ailx engine install llama.cpp --variant cpu --jobs 4 --targets llama-bench,llama-perplexity,llama-quantize
+      - name: Re-select cached installation and verify integrity
         run: |
-          cmake -S llama.cpp -B llama.cpp/build -DGGML_NATIVE=OFF -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF \
-            -DLLAMA_BUILD_SERVER=OFF -DCMAKE_BUILD_TYPE=Release
-          cmake --build llama.cpp/build -j4 --target llama-bench llama-perplexity llama-quantize
-      - name: Install harness
-        run: python -m pip install -e "python[dev]"
+          ailx engine use llama.cpp "$(ls engines/llama.cpp | grep -v current | head -1)"
+          ailx engine verify llama.cpp
+          ailx engine env | tee -a "$GITHUB_ENV.tmp"
+          sed 's/^export //' "$GITHUB_ENV.tmp" >> "$GITHUB_ENV"
       - name: Create tiny random-weight test model (not a real model)
         run: |
           mkdir -p tiny
-          python tools/make_tiny_gguf.py --vocab llama.cpp/models/ggml-vocab-llama-spm.gguf --out tiny/tiny-f16.gguf
-          llama.cpp/build/bin/llama-quantize tiny/tiny-f16.gguf tiny/tiny-q4_0.gguf q4_0
+          curl -fsSL "https://raw.githubusercontent.com/ggml-org/llama.cpp/${LLAMA_CPP_COMMIT}/models/ggml-vocab-llama-spm.gguf" -o tiny/vocab.gguf
+          python tools/make_tiny_gguf.py --vocab tiny/vocab.gguf --out tiny/tiny-f16.gguf
+          "$(dirname "$AILX_LLAMA_BENCH")/llama-quantize" tiny/tiny-f16.gguf tiny/tiny-q4_0.gguf q4_0
           python -c "import random; random.seed(1); w='the a of to and in is it that for on with as was by at be this from or an are'.split(); print(' '.join(random.choice(w) for _ in range(6000)))" > tiny/corpus.txt
-      - name: End-to-end (tiny-model campaign + KLD gate)
-        env:
-          AILX_LLAMA_CPP_BIN: ${{ github.workspace }}/llama.cpp/build/bin
-          AILX_LLAMA_BENCH: ${{ github.workspace }}/llama.cpp/build/bin/llama-bench
-          AILX_TINY_DIR: ${{ github.workspace }}/tiny
-          AILX_TINY_MODEL: ${{ github.workspace }}/tiny/tiny-f16.gguf
+      - name: End-to-end (tiny-model campaign + KLD gate) using the engine-managed binaries
         working-directory: python
-        run: python -m pytest -q -m llamacpp -rs
+        run: |
+          export AILX_LLAMA_CPP_BIN="$(dirname "$AILX_LLAMA_BENCH")" AILX_TINY_DIR="$GITHUB_WORKSPACE/tiny" AILX_TINY_MODEL="$GITHUB_WORKSPACE/tiny/tiny-f16.gguf"
+          python -m pytest -q -m llamacpp -rs
+      - name: System-layer smoke (diagnosis, install into an isolated root)
+        run: |
+          ailx --no-nvml doctor || true
+          AILX_ROOT="$RUNNER_TEMP/root" ailx system install --with-sudoers
+          AILX_ROOT="$RUNNER_TEMP/root" ailx system uninstall --purge

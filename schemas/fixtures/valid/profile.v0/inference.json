@@ -1,0 +1,30 @@
+{
+  "description": "Latency-oriented local inference (LLM serving, interactive chat).",
+  "name": "inference",
+  "schema": "ailx.profile/v0",
+  "settings": [
+    {
+      "experimental": true,
+      "hypothesis_ids": [],
+      "knob": "cpu.cpufreq.epp",
+      "rationale": "Lower frequency-ramp latency for GPU feeder and sampling threads; untested, no hypothesis registered yet.",
+      "value": "performance"
+    },
+    {
+      "experimental": true,
+      "hypothesis_ids": [
+        "H-K-05"
+      ],
+      "knob": "kernel.mm.thp.enabled",
+      "rationale": "Fewer dTLB misses for anonymous weight buffers (--no-mmap, CPU offload).",
+      "value": "always"
+    },
+    {
+      "experimental": true,
+      "hypothesis_ids": [],
+      "knob": "vm.swappiness",
+      "rationale": "Keep resident model pages under memory pressure (O-K-05 memory profile); untested.",
+      "value": "10"
+    }
+  ]
+}

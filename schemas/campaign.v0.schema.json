@@ -77,6 +77,25 @@
           },
           "operator_hooks_note": {
             "type": "string"
+          },
+          "profile": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "include_experimental": {
+                "type": "boolean"
+              }
+            },
+            "description": "AI Linux profile applied transactionally before each run of this arm and rolled back afterwards"
           }
         },
         "additionalProperties": false

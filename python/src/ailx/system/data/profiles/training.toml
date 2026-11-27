@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: MIT
+schema = "ailx.profile/v0"
+name = "training"
+description = "Throughput-oriented fine-tuning and training jobs."
+
+[[settings]]
+knob = "kernel.mm.thp.enabled"
+value = "always"
+experimental = true
+hypothesis_ids = ["H-K-05"]
+rationale = "Large anonymous allocations (optimizer state, data loaders) benefit from huge pages; untested."
+
+[[settings]]
+knob = "cpu.cpufreq.epp"
+value = "balance_performance"
+experimental = true
+hypothesis_ids = []
+rationale = "Sustained throughput without maximum boost power; untested."
+
+[[settings]]
+knob = "vm.swappiness"
+value = "10"
+experimental = true
+hypothesis_ids = []
+rationale = "Avoid swapping out pinned/staging buffers during long runs; untested."

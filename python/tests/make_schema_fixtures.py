@@ -90,6 +90,31 @@ def main() -> None:
             "event": {"kind": "event", "t_ns": 123456999, "name": "throttle", "attrs": {"reason": "thermal"}},
         },
     }
+    import tomllib
+
+    profiles_dir = REPO / "python/src/ailx/system/data/profiles"
+    valid["profile.v0"] = {p.stem: tomllib.loads(p.read_text()) for p in sorted(profiles_dir.glob("*.toml"))}
+    valid["engine-manifest.v0"] = {
+        "tiny-cmake": {
+            "schema": "ailx.engine-manifest/v0",
+            "engine": "llama.cpp",
+            "install_id": "98cc730cc8f8-cpu",
+            "kind": "cmake",
+            "version": "98cc730cc8f8f798cf83d22c23a072c205b0e510",
+            "variant": "cpu",
+            "licence": "MIT",
+            "source": {
+                "url": "https://github.com/ggml-org/llama.cpp",
+                "commit": "98cc730cc8f8f798cf83d22c23a072c205b0e510",
+            },
+            "build": {"system": "cmake", "flags": ["-DGGML_NATIVE=OFF"], "targets": ["llama-bench"]},
+            "toolchain": {"cmake": "cmake version 3.28.3"},
+            "artifacts": [{"path": "bin/llama-bench", "sha256": "0" * 64, "size": 1}],
+            "installed_at": "2026-11-27T00:00:00.000000Z",
+            "host": {},
+            "notes": [],
+        }
+    }
     for schema, docs in valid.items():
         for name, doc in docs.items():
             dump("valid", schema, name, doc)
@@ -119,6 +144,18 @@ def main() -> None:
         "analysis.v0": {"bad-verdict": setk(ana, "comparisons", [dict(ana["comparisons"][0], verdict="equivalent")])},
         "workload.v0": {"no-metrics": setk(valid["workload.v0"]["synthetic-simulated"], "metrics", [])},
         "knob.v0": {"bad-security-class": setk(valid["knob.v0"]["thp-mode"], "security_class", "probably-fine")},
+        "profile.v0": {
+            "missing-rationale": setk(
+                valid["profile.v0"]["inference"],
+                "settings",
+                [{"knob": "vm.swappiness", "value": "10", "experimental": True}],
+            )
+        },
+        "engine-manifest.v0": {
+            "bad-sha": setk(
+                valid["engine-manifest.v0"]["tiny-cmake"], "artifacts", [{"path": "bin/x", "sha256": "xyz", "size": 1}]
+            )
+        },
         "sample-stream.v0": {"wrong-clock": setk(valid["sample-stream.v0"]["header"], "clock", "CLOCK_REALTIME")},
     }
     for schema, docs in invalid.items():

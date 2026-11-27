@@ -228,6 +228,13 @@
       "additionalProperties": {
         "type": "string"
       }
+    },
+    "platform": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "AI Linux system-layer state: active profile, last transaction, applied knob values, installed engines (optional)"
     }
   },
   "required": [

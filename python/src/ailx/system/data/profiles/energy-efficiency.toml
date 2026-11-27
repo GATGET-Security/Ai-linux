@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT
+schema = "ailx.profile/v0"
+name = "energy-efficiency"
+description = "Lower energy per token at an acceptable throughput cost."
+
+[[settings]]
+knob = "gpu.nvidia.power_limit_fraction"
+value = "0.7"
+experimental = true
+hypothesis_ids = ["H-S-01"]
+rationale = "Memory-bound decode may keep most of its speed at 70% power (anecdotal evidence only, grade D)."
+
+[[settings]]
+knob = "cpu.cpufreq.epp"
+value = "balance_power"
+experimental = true
+hypothesis_ids = []
+rationale = "CPU is not on the critical path of GPU-resident decode; untested."

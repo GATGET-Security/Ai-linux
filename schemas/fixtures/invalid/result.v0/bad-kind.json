@@ -1,14 +1,14 @@
 {
   "arm_id": "faster5",
   "block": 0,
-  "campaign_id": "cmp-590e952754c3a8cf6af0cb9897faf4900f3a3b93b7e203e7083391d77df28f30",
-  "duration_s": 0.5538804200000413,
+  "campaign_id": "cmp-60d7819acf45b99c831de140827b2afcb214dd07188f1c24b7274efa6ac8a636",
+  "duration_s": 0.5415912909999179,
   "energy": {
     "ground_truth": "none"
   },
-  "fingerprint_id": "env-2ae8fb561b8b0df2cf7b217e44a8150a57190dbe339a2a785ae2ce61ac91f871",
+  "fingerprint_id": "env-ccd415287b050fbe104dfa8fd3a06a91378c6f02e3a8733f37d0484fabcea232",
   "hardware_profile_id": "hwp-cca951b8c4e3128daa39705d7b032d9f953a51d39257ee7a8dd9423fdedb4e87",
-  "id": "res-41dc687681ad9f38c6d16518166e2b99b700ad184e9f51fe99e6a2b160052635",
+  "id": "res-707fa5e70aab9cd2b4f7f3e66f1a3b63fde46902f100c5847910228bb6b5f5b2",
   "logs_ref": "sha256:fb53f8d510de5934066eee1a3091c0d4b4e88981ce9041ac72649ff3a3926b6a",
   "measurement_kind": "estimated",
   "metrics": {
@@ -23,10 +23,10 @@
   },
   "order_index": 0,
   "quality": null,
-  "raw_ref": "sha256:304f41a026dae84418dc5eb9dcaa32ee66781840c6929595e156521f720e8a2f",
+  "raw_ref": "sha256:18d8777978c3675fb8dc625eef82ad58964fb44ab72eea0d07534052a343bfad",
   "schema": "ailx.result/v0",
   "stability_events": [],
-  "started_at": "2026-11-26T19:27:23.238836Z",
+  "started_at": "2026-11-27T13:10:36.923107Z",
   "status": "ok",
   "status_detail": null,
   "telemetry": {
@@ -41,7 +41,7 @@
         },
         "cpu.full.total_us": {
           "delta": 0,
-          "duration_s": 0.50010897,
+          "duration_s": 0.500156423,
           "n": 2,
           "unit": "us"
         },
@@ -51,8 +51,8 @@
           "unit": "%"
         },
         "cpu.some.total_us": {
-          "delta": 1243,
-          "duration_s": 0.50010897,
+          "delta": 2785,
+          "duration_s": 0.500156423,
           "n": 2,
           "unit": "us"
         },
@@ -62,8 +62,8 @@
           "unit": "%"
         },
         "io.full.total_us": {
-          "delta": 5,
-          "duration_s": 0.50010897,
+          "delta": 0,
+          "duration_s": 0.500156423,
           "n": 2,
           "unit": "us"
         },
@@ -73,8 +73,8 @@
           "unit": "%"
         },
         "io.some.total_us": {
-          "delta": 6,
-          "duration_s": 0.50010897,
+          "delta": 0,
+          "duration_s": 0.500156423,
           "n": 2,
           "unit": "us"
         },
@@ -85,7 +85,7 @@
         },
         "memory.full.total_us": {
           "delta": 0,
-          "duration_s": 0.50010897,
+          "duration_s": 0.500156423,
           "n": 2,
           "unit": "us"
         },
@@ -96,7 +96,7 @@
         },
         "memory.some.total_us": {
           "delta": 0,
-          "duration_s": 0.50010897,
+          "duration_s": 0.500156423,
           "n": 2,
           "unit": "us"
         }
