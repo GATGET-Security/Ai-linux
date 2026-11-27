@@ -1,63 +1,78 @@
 # CURRENT — hot context
 
-> Last updated: 2026-11-27 (Phase 1.3) · Keep ≤ 100 lines · Detail lives in linked docs (ADR-0002)
+> Last updated: 2026-11-27 (Phase 1.4) · Keep ≤ 100 lines · Detail lives in linked docs (ADR-0002)
 
 ## Where we are
 
-- **Phase 1.3 Runtime Foundation: implemented (build-heavy), CPU-integration-
-  tested.** `ailx` system layer exists next to the `ailx-bench` measurement
-  foundation (Phase 1.1).
-- **Phase 1.2 (first hardware run) deferred** — workstation unavailable. No
-  measurement on the reference hardware exists; every GPU/hardware-dependent
-  item is `hw-queued` (`state/validation-ledger.md`, VL-1.1-*, VL-1.3-*).
+- **Phase 1.4 Packaging & bootable prototype: built and QEMU-validated.**
+  - Native `.deb` `ailx`: reproducible, lintian-clean, lifecycle-tested.
+  - Trust-boundary review of ADR-0011: 7 issues fixed.
+  - Experimental headless reference image (Ubuntu 26.04, A/B root slots,
+    data partition). It boots in QEMU/TCG, including with Secure Boot.
+  - In the VM: CLI, CPU inference, A/B update, rollback and automatic fallback
+    work.
+- **Phase 1.3 (`ailx`) and 1.1 (`ailx-bench`): implemented, CPU-tested.**
+- **Phase 1.2 (first hardware run): deferred**, because the workstation is
+  unavailable. **Nothing is hardware-validated.** All GPU and hardware items
+  are `hw-queued` (`state/validation-ledger.md`: VL-1.1-*, VL-1.3-*, VL-1.4-05…08).
 
 ## What exists (code)
 
 | Area | Where |
 |------|-------|
-| `ailx`: status, hardware, resources, doctor, knobs | `python/src/ailx/system/` |
-| Profiles baseline / inference / training / energy-efficiency (all settings experimental, inactive by default) | `system/data/profiles/` |
-| Transactions: journal, verify, rollback, dead-man confirm, drift, crash recovery | `system/transactions.py` |
-| Privileged apply helper (own allow-list, sudo -n) | `helpers/apply-helper/` |
-| Engines: llama.cpp (pinned 98cc730, static builds), vLLM 0.34.0 (isolated venv), manifests + integrity | `system/engines.py` |
-| System install/uninstall (layer mode, install manifest) | `system/install.py` |
-| Measurement foundation (`ailx-bench`), schemas, RAPL collector, CI | `python/src/ailx/`, `schemas/`, `helpers/`, `.github/` |
+| `ailx`: status, hardware, resources, doctor, knobs, profiles, transactions, engines | `python/src/ailx/system/` |
+| A/B image management (`ailx image status/stage/confirm/rollback/health`) | `system/image.py` |
+| Native Debian package (build, maintainer scripts, lifecycle test) | `packaging/deb/` |
+| Reference image builder + QEMU test harness | `packaging/image/` |
+| Measurement foundation (`ailx-bench`), schemas, helpers, CI (incl. deb job) | `python/src/ailx/`, `schemas/`, `helpers/`, `.github/` |
 
-Spec and limits: `architecture/runtime-foundation.md` · ADR-0011 (proposed).
+Specs: `architecture/reference-image.md` · `architecture/trust-boundary-review.md`
+· `architecture/runtime-foundation.md`. Results: `state/image-prototype-report.md`.
 
 ## Decisions
 
-- Maintainer (2026-11-26): ADRs 0005–0008, 0010 accepted; ADR-0009 MIT /
+- Maintainer (2026-11-26): ADRs 0005–0008 and 0010 accepted; ADR-0009 MIT /
   GPL-2.0-only; Python harness; Ubuntu 26.04 + NVIDIA reference platform.
-- **Proposed, needs maintainer review: ADR-0011** (unprivileged planner +
-  allow-listed privileged helper + journaled transactions; runtime-only
-  changes; no boot persistence before validation).
+- **Proposed, need maintainer review:**
+  - **ADR-0011**: privilege model, amended by the review.
+  - **ADR-0012**: experimental reference image with A/B slots. This is not
+    the base-distro decision of ADR-0005.
 
-## Facts learned while implementing (CPU/cloud only)
+## Facts learned (QEMU/TCG and CPU only — no hardware)
 
-- Plans can be stale at apply time (e.g. `--replace`); the transaction now
-  re-reads current values under the lock — a real bug caught by tests.
-- Live apply → verify → rollback and dead-man auto-rollback worked on the
-  cloud container (THP, swappiness); cpufreq/X3D/NVIDIA paths only on fakes.
-- llama.cpp CPU engine build at the pinned commit: static, relocatable,
-  manifest + tamper detection verified (cloud host).
+- The vm image has 209 packages, 642 MiB on root, 11 running services and
+  0 failed units. It idles at 326 MiB RAM used (TCG run; timings are not
+  representative).
+- Ubuntu's initramfs runs `/bin/sh` as init when `/sbin/init` is missing, so a
+  broken slot hangs instead of panicking.
+- Ubuntu blacklists watchdog drivers, and the initramfs exports
+  `MODPROBE_OPTIONS=-qb`. The trial-boot watchdog must therefore load the
+  driver with that variable unset. An empty value crashed kmod 34.2.
+- Slots must be found by GPT partition name: writing a slot image changes its
+  filesystem label.
+- Journals are untrusted input, so every privileged write is re-validated.
 
 ## Next development block
 
-1. When the workstation is available: Phase 1.2 runbook
-   (`runbooks/first-hardware-run.md`, now using `ailx system install` and
-   `ailx engine install llama.cpp --variant cuda`), then ledger updates.
-2. Without hardware: review/accept ADR-0011; `.deb` packaging of the layer;
-   AMD/Intel GPU knobs (detection exists, control does not); Phase 2 design
-   of the self-optimizer on top of transactions + campaigns.
+1. When the workstation is available, run `runbooks/first-hardware-run.md`.
+   Additionally, boot the `hw` flavor with Secure Boot and the NVIDIA driver
+   (VL-1.4-05…07). Then update the ledger.
+2. Without hardware:
+   - maintainer review of ADR-0011 and ADR-0012;
+   - signed slot manifests and a bootloader update path;
+   - carry `/etc` and machine-id across slots;
+   - AMD/Intel GPU knobs;
+   - Phase 2 design of the self-optimizer.
 
 ## Open (maintainers)
 
-- ADR-0011; documentation and benchmark-data licence; DCO; legal review.
-- Sudoers drop-in is opt-in per machine (`ailx system install --with-sudoers`).
+- ADR-0011, ADR-0012; documentation and benchmark-data licence; DCO; legal
+  review.
+- Rule change in AGENTS.md §11: an *experimental* image prototype is allowed
+  (by this phase's brief), but it is not the final distribution.
 
 ## Where to look
 
-`INDEX.md` · `architecture/runtime-foundation.md` ·
-`architecture/phase1.1-measurement-foundation.md` · `runbooks/first-hardware-run.md` ·
-`state/validation-ledger.md` · `adr/0011-system-layer-privilege-and-transactions.md`
+`INDEX.md` · `architecture/reference-image.md` · `state/image-prototype-report.md` ·
+`architecture/trust-boundary-review.md` · `architecture/runtime-foundation.md` ·
+`runbooks/first-hardware-run.md` · `state/validation-ledger.md`

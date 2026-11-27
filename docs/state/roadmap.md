@@ -55,6 +55,17 @@ management (llama.cpp, vLLM) with build manifests; system install/uninstall;
 profile arms in campaigns. Spec: `docs/architecture/runtime-foundation.md`.
 Phase 1.2 (hardware run) is deferred until the workstation is available.
 
+## Phase 1.4 — Packaging & bootable prototype (✅ built 2026-11-27, QEMU-validated)
+
+Native `.deb` (reproducible, lifecycle-tested, CI job); trust-boundary review
+of ADR-0011 with fixes; experimental headless reference image on Ubuntu 26.04
+with A/B root slots, data partition, trial boot + health check + fallback
+(ADR-0012, proposed). Booted and exercised in QEMU/TCG only; hardware boot is
+`hw-queued`. This prototype pulls part of Phase 3's mechanics forward for
+testing; it does **not** replace the base-distribution bake-off (ADR-0005).
+Spec: `docs/architecture/reference-image.md`; results:
+`docs/state/image-prototype-report.md`.
+
 ## Phase 2 — Tune as a layer → MVP "ailx 0.1" (≈ 3–4 months)
 
 | Area | Content |

@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-11-27 · Phase: **1.3 — Runtime foundation implemented (CPU-tested); Phase 1.2 hardware run deferred (workstation unavailable)**
+> Last updated: 2026-11-27 · Phase: **1.4 — Packaging & bootable prototype (QEMU-validated); Phase 1.2 hardware run deferred (workstation unavailable)**
 
 ## Deliverables of Phase 0
 
@@ -24,6 +24,22 @@
 | **Phase 0.1 review** (source verification, corrections, gaps, ADR assessment) | `docs/research/08-architecture-review.md` | done |
 | **Phase 1.1 executable specification** | `docs/architecture/phase1.1-measurement-foundation.md` | ready (blocked by prerequisites P1–P3) |
 | Register updates after review: 57 hypotheses, 22 risks | `docs/state/` | done |
+
+## Phase 1.4 outcome
+
+- Native `.deb` (`packaging/deb/`): byte-identical rebuilds, lintian clean
+  (only `initial-upload-closes-no-bugs`), lifecycle install → upgrade with a
+  modified conffile → remove → purge passed in an Ubuntu 26.04 chroot; CI job
+  added (build twice + lintian + lifecycle in an `ubuntu:26.04` container).
+- Trust-boundary review of ADR-0011: 7 findings fixed and tested
+  (`architecture/trust-boundary-review.md`).
+- Reference image prototype (ADR-0012 proposed): built (vm: 209 packages,
+  qcow2 ≈ 732 MiB incl. engine + test models; hw rootfs: 248 packages, not
+  booted) and validated in QEMU/TCG incl. Secure Boot (OVMF + MS keys):
+  boot, CLI, CPU inference (random-weight test model), A/B update, rollback,
+  fallback from an unbootable slot. Four real defects found by the VM runs and
+  fixed (`state/image-prototype-report.md`).
+- Validated on hardware: **nothing yet** (VL-1.4-05 … 08 hw-queued).
 
 ## Phase 1.3 outcome
 
@@ -67,11 +83,12 @@
 
 ## Validation status
 
-- **Nothing has been validated on hardware.** No benchmarks were run; no code
-  exists. Every performance statement in the repository is either an external
-  claim (with source and context), a theoretical bound (labeled), or a
+- **Nothing has been validated on hardware.** Code is CPU/CI- and
+  QEMU-tested only. Every performance statement in the repository is either an
+  external claim (with source and context), a theoretical bound (labeled), or a
   hypothesis.
-- Validation ledger: empty (`docs/state/validation-ledger.md`).
+- Validation ledger: `docs/state/validation-ledger.md` (VL-1.1-*, VL-1.3-*,
+  VL-1.4-*; all hardware rows hw-queued).
 
 ## Known limitations of Phase 0
 

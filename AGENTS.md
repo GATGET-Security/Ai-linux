@@ -16,11 +16,12 @@ existing open-source components.
 
 ## 2. Current phase
 
-**Phase 1 — Measure.** Phase 1.1 (measurement foundation, `ailx-bench`) and
-Phase 1.3 (runtime foundation, `ailx`: inventory, doctor, profiles,
-transactions, engines, install) are implemented and CPU-tested; Phase 1.2
-(first hardware run) is deferred until the workstation is available. No
-distribution image. Profile settings stay experimental and inactive by default
+**Phase 1 — Measure.** Phase 1.1 (measurement foundation, `ailx-bench`),
+Phase 1.3 (runtime foundation, `ailx`) and Phase 1.4 (native `.deb`,
+experimental A/B reference image, QEMU-validated only) are implemented; Phase
+1.2 (first hardware run) is deferred until the workstation is available. The
+reference image is a prototype (ADR-0012 proposed), not the base-distro
+decision (ADR-0005). Profile settings stay experimental and inactive by default
 until hardware-validated; no automatic tuning yet (Phase 2).
 Read `docs/CURRENT.md` for the live state before doing anything else.
 
@@ -87,6 +88,7 @@ docs/runbooks/       operator runbooks (hardware runs)
 schemas/             canonical JSON Schemas (language-neutral contracts) + fixtures
 python/              `ailx` system layer + `ailx-bench` measurement harness (MIT)
 helpers/             small privileged helpers (MIT, stdlib only): apply-helper, rapl-collector
+packaging/           native .deb (packaging/deb) and experimental A/B reference image + QEMU test (packaging/image)
 workloads/           workload manifests and campaign specs
 tools/               development tools (e.g. random-weight test model)
 ```
@@ -143,4 +145,5 @@ When implementation starts:
 - Add telemetry, auto-updaters that phone home, or cloud requirements.
 - Add knobs that reduce security or quality as defaults.
 - Expand the hot context with research detail.
-- Start building the distribution image before the base-distro ADR (ADR-0005).
+- Treat the experimental reference image (ADR-0012) as the final distribution or
+  add tuning to it before the base-distro bake-off (ADR-0005) and hardware validation.

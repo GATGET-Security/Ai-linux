@@ -4,12 +4,14 @@
 local AI workloads** — LLMs, image/video/audio generation, embeddings,
 autonomous agents, training and fine-tuning.
 
-> **Status: Phase 1.3 — Runtime foundation implemented.** The system-layer CLI
-> `ailx` (inventory, diagnosis, transactional profiles, engine management,
-> install) and the benchmark harness `ailx-bench` exist and are tested on CPU;
-> **nothing has been measured on the reference hardware yet**, and all profile
-> settings are experimental and off by default. There is no distribution
-> image. Next: the first hardware run ([runbook](docs/runbooks/first-hardware-run.md)).
+> **Status: Phase 1.4 — Packaging & bootable prototype.** `ailx` (system
+> layer) and `ailx-bench` (benchmark harness) ship as a native `.deb`; an
+> **experimental** headless reference image (Ubuntu 26.04, A/B root slots,
+> separate data partition) boots and updates/rolls back in QEMU — see the
+> [validation report](docs/state/image-prototype-report.md). **Nothing has been
+> measured on the reference hardware yet**; all profile settings are
+> experimental and off by default. Next: the first hardware run
+> ([runbook](docs/runbooks/first-hardware-run.md)).
 
 ## Why
 
@@ -92,6 +94,18 @@ ailx engine install llama.cpp --variant cpu          # pinned, isolated build wi
 ailx-bench probe                       # hardware profile + fingerprint
 ailx-bench campaign all ../workloads/campaigns/synthetic-aa.json --report aa.md   # simulated self-test
 ```
+
+## Packaging and image (experimental)
+
+```bash
+python3 packaging/deb/build_deb.py --version 0.1.0-1 --out out/     # native .deb (Ubuntu 26.04)
+sudo apt install ./out/ailx_0.1.0-1_all.deb
+sudo python3 packaging/image/build_image.py --deb out/ailx_0.1.0-1_all.deb --version 1 \
+     --authorized-key ~/.ssh/id_ed25519.pub --out out/              # A/B reference image (prototype)
+python3 packaging/image/vm_test.py --disk out/ailx-1-vm.qcow2 --key ~/.ssh/id_ed25519 --quick --out report/
+```
+
+Details: [docs/architecture/reference-image.md](docs/architecture/reference-image.md).
 
 ## License
 

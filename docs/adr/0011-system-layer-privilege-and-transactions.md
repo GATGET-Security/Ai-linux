@@ -45,7 +45,25 @@ Option 3 for Phase 1.x:
   (`ailx system install --with-sudoers`).
 - Runtime-only changes are lost on reboot — intentional until validated.
 
+## Review amendment (Phase 1.4, still Proposed)
+
+A trust-boundary review (`docs/architecture/trust-boundary-review.md`) found
+and fixed seven issues; the decision itself is unchanged:
+
+- Journals are untrusted input. Every write, including reverts, is re-validated
+  against the live registry (F1), and transaction IDs are validated (F2).
+- Writes open the resolved path with `O_NOFOLLOW` (F3). Root-owned links point
+  only into trusted trees, and packaged entry points run `python3 -I` (F4).
+- Transactions carry the boot ID and expire on reboot (F5). The dead-man
+  watchdog requires passwordless sudo up front (F6).
+- GPUs above their default power limit are not managed, so the original
+  value is always restorable (F7).
+
+Delivery changed: the `.deb` is now the primary install path.
+`ailx system install` remains for unpackaged checkouts only.
+
 ## References
 
 - `docs/architecture/runtime-foundation.md`
 - `helpers/apply-helper/README.md`
+- `docs/architecture/trust-boundary-review.md`

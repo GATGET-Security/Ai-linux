@@ -89,6 +89,12 @@ runtime-bundle digest recorded in measurement fingerprints.
 
 ## Installation concept (host distribution: Ubuntu 26.04 LTS)
 
+> **Phase 1.4:** the primary install path is now the native package
+> (`sudo apt install ./ailx_<ver>_all.deb`, `packaging/deb/`, see
+> `reference-image.md`); `ailx system install` below remains for unpackaged
+> checkouts and refuses to run on a dpkg-managed layer. Security review of this
+> layer: `trust-boundary-review.md`.
+
 ```bash
 sudo python3 -m venv /opt/ailx/venv
 sudo /opt/ailx/venv/bin/pip install ./python            # later: a release wheel / .deb

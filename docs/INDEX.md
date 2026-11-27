@@ -1,6 +1,6 @@
 # Documentation Index
 
-> Last updated: 2026-11-27 (Phase 1.3) · Start with [`../AGENTS.md`](../AGENTS.md) and [`CURRENT.md`](CURRENT.md)
+> Last updated: 2026-11-27 (Phase 1.4) · Start with [`../AGENTS.md`](../AGENTS.md) and [`CURRENT.md`](CURRENT.md)
 
 Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 **cold** = read on demand and cite by ID.
@@ -24,6 +24,8 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 | [`architecture/image-and-delivery.md`](architecture/image-and-delivery.md) | Layer-first delivery, base-distro bake-off, image/update/rollback, build pipeline |
 | [`architecture/community-and-licensing.md`](architecture/community-and-licensing.md) | License set, governance, contribution and community strategy |
 | [`architecture/runtime-foundation.md`](architecture/runtime-foundation.md) | `ailx` system layer: profiles, transactions, privilege model, engines, install concept |
+| [`architecture/trust-boundary-review.md`](architecture/trust-boundary-review.md) | Phase 1.4 review of the privileged boundary (ADR-0011): findings F1–F7, residual risks |
+| [`architecture/reference-image.md`](architecture/reference-image.md) | `.deb` packaging, experimental A/B reference image, versioning, upgrade, recovery |
 | [`architecture/phase1.1-measurement-foundation.md`](architecture/phase1.1-measurement-foundation.md) | **Executable specification of the next block** (schemas, WPs, acceptance criteria) |
 
 ## State and planning (warm)
@@ -35,7 +37,8 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 | [`state/hypotheses.md`](state/hypotheses.md) | Register of all hypotheses with falsification tests |
 | [`state/risks.md`](state/risks.md) | Risk register |
 | [`state/open-questions.md`](state/open-questions.md) | Consolidated open questions and contradictory evidence |
-| [`state/validation-ledger.md`](state/validation-ledger.md) | Deferred-validation ledger (Phase 1.1 rows, hw-queued) |
+| [`state/validation-ledger.md`](state/validation-ledger.md) | Deferred-validation ledger (VL-1.1/1.3/1.4 rows; hardware rows hw-queued) |
+| [`state/image-prototype-report.md`](state/image-prototype-report.md) | QEMU validation of the reference image: metrics, A/B scenario, defects found |
 
 ## Runbooks and code (warm)
 
@@ -46,6 +49,7 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 | [`../schemas/README.md`](../schemas/README.md) | Canonical schemas and conformance corpus |
 | [`../helpers/rapl-collector/README.md`](../helpers/rapl-collector/README.md) | RAPL helper, threat model |
 | [`../helpers/apply-helper/README.md`](../helpers/apply-helper/README.md) | Privileged apply helper, allow-list |
+| `../packaging/deb/`, `../packaging/image/` | `.deb` build + lifecycle test; image builder + QEMU test (`vm_test.py`) |
 | [`../LICENSING.md`](../LICENSING.md) | Licence split (ADR-0009) |
 
 ## Decisions (warm)
@@ -63,7 +67,8 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 | [0008](adr/0008-self-optimizer-safety-tiers.md) | Self-optimizer safety tiers and adoption rules | Accepted |
 | [0009](adr/0009-licensing-and-contribution-model.md) | Licensing set and contribution model | Accepted as amended (MIT / GPL-2.0-only) |
 | [0010](adr/0010-build-heavy-deferred-validation.md) | Build-heavy / deferred-validation strategy | Accepted |
-| [0011](adr/0011-system-layer-privilege-and-transactions.md) | System layer: unprivileged planner, privileged helper, journaled transactions | Proposed |
+| [0011](adr/0011-system-layer-privilege-and-transactions.md) | System layer: unprivileged planner, privileged helper, journaled transactions (review amendment 1.4) | Proposed |
+| [0012](adr/0012-reference-image-prototype-ab-slots.md) | Experimental reference image: Ubuntu 26.04, A/B root slots, data partition | Proposed |
 
 ## Research (cold)
 
