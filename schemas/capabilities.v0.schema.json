@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/capabilities.v0.schema.json",
+  "title": "AI Linux hardware capabilities v0",
+  "description": "What a machine can do for AI workloads: CPU topology per LLC domain, ISA level, NUMA, memory, accelerators with provenance-labeled memory bandwidth, usable compute backends (driver stack x installed engine build) and live free resources. The id hashes everything except collected_at and live.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "collected_at", "hardware_profile_id", "cpu", "numa", "memory", "accelerators", "storage", "backends", "engines", "unavailable", "live"],
+  "$defs": {
+    "nullable_int": {"type": ["integer", "null"], "minimum": 0},
+    "nullable_num": {"type": ["number", "null"]},
+    "bandwidth": {
+      "type": "object",
+      "required": ["bytes_per_s", "provenance"],
+      "properties": {
+        "bytes_per_s": {"type": ["number", "null"], "minimum": 0},
+        "provenance": {"type": "string"},
+        "kind": {"enum": ["theoretical", "measured", null]}
+      }
+    },
+    "llc_domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "cpus", "primary_cpus", "physical_cores", "l3_bytes", "max_khz", "numa_node", "role"],
+      "properties": {
+        "id": {"type": "integer", "minimum": 0},
+        "cpus": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 1},
+        "primary_cpus": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "physical_cores": {"type": "integer", "minimum": 1},
+        "l3_bytes": {"$ref": "#/$defs/nullable_int"},
+        "max_khz": {"$ref": "#/$defs/nullable_int"},
+        "numa_node": {"$ref": "#/$defs/nullable_int"},
+        "role": {"enum": ["large-cache", "frequency", null]}
+      }
+    },
+    "accelerator": {
+      "type": "object",
+      "required": ["id", "vendor", "kind", "index", "name", "memory", "backends", "source"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z]+:[0-9]+$"},
+        "vendor": {"enum": ["nvidia", "amd", "intel", "other"]},
+        "kind": {"enum": ["gpu", "npu"]},
+        "index": {"type": ["integer", "null"]},
+        "name": {"type": ["string", "null"]},
+        "memory": {
+          "type": "object",
+          "required": ["kind", "total_bytes", "bandwidth"],
+          "properties": {
+            "kind": {"enum": ["discrete", "unified", "host", "unknown"]},
+            "total_bytes": {"$ref": "#/$defs/nullable_int"},
+            "bandwidth": {"$ref": "#/$defs/bandwidth"}
+          }
+        },
+        "backends": {"type": "array", "items": {"enum": ["cuda", "vulkan", "rocm", "sycl"]}},
+        "source": {"enum": ["nvml", "nvidia-smi", "sysfs"]}
+      }
+    }
+  },
+  "properties": {
+    "schema": {"const": "ailx.capabilities/v0"},
+    "id": {"type": "string", "pattern": "^cap-[0-9a-f]{64}$"},
+    "collected_at": {"type": "string", "format": "date-time"},
+    "hardware_profile_id": {"type": "string", "pattern": "^hwp-[0-9a-f]{64}$"},
+    "cpu": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vendor", "model", "sockets", "physical_cores", "logical_cpus", "smt_active", "isa", "caches_per_core_bytes", "llc_domains", "asymmetric_llc", "x3d_mode", "topology_source"],
+      "properties": {
+        "vendor": {"type": ["string", "null"]},
+        "model": {"type": ["string", "null"]},
+        "sockets": {"$ref": "#/$defs/nullable_int"},
+        "physical_cores": {"type": "integer", "minimum": 1},
+        "logical_cpus": {"type": "integer", "minimum": 1},
+        "smt_active": {"type": ["boolean", "null"]},
+        "isa": {
+          "type": "object",
+          "required": ["level", "ai_extensions"],
+          "properties": {
+            "level": {"type": ["string", "null"]},
+            "ai_extensions": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "caches_per_core_bytes": {"type": "object"},
+        "llc_domains": {"type": "array", "items": {"$ref": "#/$defs/llc_domain"}},
+        "asymmetric_llc": {"type": "boolean"},
+        "x3d_mode": {"type": ["string", "null"]},
+        "topology_source": {"type": "string"}
+      }
+    },
+    "numa": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["node", "cpus", "memory_total_bytes"],
+        "properties": {
+          "node": {"type": "integer", "minimum": 0},
+          "cpus": {"type": "array", "items": {"type": "integer"}},
+          "memory_total_bytes": {"$ref": "#/$defs/nullable_int"}
+        }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "required": ["total_bytes", "swap_total_bytes", "bandwidth"],
+      "properties": {
+        "total_bytes": {"$ref": "#/$defs/nullable_int"},
+        "swap_total_bytes": {"$ref": "#/$defs/nullable_int"},
+        "bandwidth": {"$ref": "#/$defs/bandwidth"}
+      }
+    },
+    "accelerators": {"type": "array", "items": {"$ref": "#/$defs/accelerator"}},
+    "storage": {"type": "object", "required": ["models_dir"]},
+    "backends": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["backend", "devices", "host_stack", "engine_builds", "usable"],
+        "properties": {
+          "backend": {"enum": ["cpu", "cuda", "vulkan", "rocm", "sycl"]},
+          "devices": {"type": "array", "items": {"type": "string"}},
+          "host_stack": {"type": "boolean"},
+          "engine_builds": {"type": "array", "items": {"type": "string"}},
+          "usable": {"type": "boolean"}
+        }
+      }
+    },
+    "engines": {"type": "array", "items": {"type": "object", "required": ["engine", "install_id", "backend"]}},
+    "unavailable": {"type": "object", "additionalProperties": {"type": "string"}},
+    "live": {"type": "object"}
+  }
+}

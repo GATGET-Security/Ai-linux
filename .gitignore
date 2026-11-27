@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+build/
+dist/
+# local measurement data and models (never commit weights or stores)
+ailx-store/
+*.gguf
+*.kld
+# image/package build outputs
+/out/

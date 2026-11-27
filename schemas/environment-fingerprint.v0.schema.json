@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/environment-fingerprint.v0.schema.json",
+  "title": "AI Linux environment fingerprint v0",
+  "description": "Software/configuration state that can influence a measurement. Captured per run.",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ailx.environment-fingerprint/v0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^env-[0-9a-f]{64}$"
+    },
+    "hardware_profile_id": {
+      "type": "string",
+      "pattern": "^hwp-[0-9a-f]{64}$"
+    },
+    "kernel": {
+      "type": "object",
+      "required": [
+        "release",
+        "cmdline"
+      ],
+      "properties": {
+        "release": {
+          "type": "string"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cmdline": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "config_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "os": {
+      "type": "object",
+      "required": [
+        "id",
+        "version_id"
+      ],
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pretty_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "firmware": {
+      "type": "object"
+    },
+    "drivers": {
+      "type": "object"
+    },
+    "security": {
+      "type": "object",
+      "required": [
+        "secure_boot",
+        "lockdown",
+        "mitigations"
+      ],
+      "properties": {
+        "secure_boot": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "lockdown": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mitigations": {
+          "type": "object"
+        },
+        "iommu_groups": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "sched": {
+      "type": "object"
+    },
+    "cpufreq": {
+      "type": "object"
+    },
+    "memory_policy": {
+      "type": "object"
+    },
+    "services": {
+      "type": "object",
+      "properties": {
+        "tuning_daemons": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "accelerator_state": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "runtime_bundles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "digest": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "size_bytes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "harness": {
+      "type": "object",
+      "required": [
+        "version"
+      ],
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "git_sha": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "python": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "unavailable": {
+      "type": "object",
+      "description": "Field path -> reason why the value could not be collected. Values are never guessed.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "platform": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "AI Linux system-layer state: active profile, last transaction, applied knob values, installed engines (optional)"
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "hardware_profile_id",
+    "kernel",
+    "os",
+    "firmware",
+    "drivers",
+    "security",
+    "sched",
+    "cpufreq",
+    "memory_policy",
+    "services",
+    "accelerator_state",
+    "runtime_bundles",
+    "models",
+    "harness",
+    "unavailable"
+  ],
+  "additionalProperties": false
+}

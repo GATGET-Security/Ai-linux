@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/campaign.v0.schema.json",
+  "title": "AI Linux campaign (pre-registered analysis plan) v0",
+  "description": "Frozen before the first run. Results reference the campaign ID, so the plan cannot change afterwards.",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ailx.campaign/v0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^cmp-[0-9a-f]{64}$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "purpose": {
+      "enum": [
+        "aa-calibration",
+        "confirmatory",
+        "screening"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "hypothesis_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "workload": {
+      "type": "object",
+      "description": "Embedded workload manifest (workload.v0)"
+    },
+    "workload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "arms": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "description": {
+            "type": "string"
+          },
+          "param_overrides": {
+            "type": "object"
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "setup_commands": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "operator_hooks_note": {
+            "type": "string"
+          },
+          "profile": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "include_experimental": {
+                "type": "boolean"
+              }
+            },
+            "description": "AI Linux profile applied transactionally before each run of this arm and rolled back afterwards"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "baseline_arm": {
+      "type": "string"
+    },
+    "design": {
+      "type": "object",
+      "required": [
+        "type",
+        "blocks",
+        "runs_per_block",
+        "seed"
+      ],
+      "properties": {
+        "type": {
+          "const": "rmit"
+        },
+        "blocks": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "runs_per_block": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "seed": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "schedule": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "index",
+          "block",
+          "arm"
+        ],
+        "properties": {
+          "index": {
+            "type": "integer"
+          },
+          "block": {
+            "type": "integer"
+          },
+          "arm": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "primary_metric": {
+      "type": "string"
+    },
+    "guard_metrics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "e_min": {
+      "type": "number",
+      "minimum": 0
+    },
+    "alpha": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1
+    },
+    "fdr": {
+      "enum": [
+        "none",
+        "bh"
+      ]
+    },
+    "equivalence_margin": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "calibration_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "bootstrap_resamples": {
+      "type": "integer",
+      "minimum": 100
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "created_at",
+    "purpose",
+    "title",
+    "hypothesis_ids",
+    "workload",
+    "workload_sha256",
+    "arms",
+    "baseline_arm",
+    "design",
+    "schedule",
+    "primary_metric",
+    "guard_metrics",
+    "e_min",
+    "alpha",
+    "fdr",
+    "equivalence_margin",
+    "calibration_id",
+    "bootstrap_resamples"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/profile.v0.schema.json",
+  "title": "AI Linux system profile v0",
+  "description": "Declarative set of knob settings. Settings that are not hardware-validated are experimental and inactive by default.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "name",
+    "description",
+    "settings"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ailx.profile/v0"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "settings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "knob",
+          "value",
+          "experimental",
+          "rationale"
+        ],
+        "properties": {
+          "knob": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "experimental": {
+            "type": "boolean"
+          },
+          "hypothesis_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^H-[A-Z]-[0-9]+$"
+            }
+          },
+          "rationale": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

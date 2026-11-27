@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/result.v0.schema.json",
+  "title": "AI Linux result record v0",
+  "description": "One run of one arm of a campaign (or a standalone run).",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ailx.result/v0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^res-[0-9a-f]{64}$"
+    },
+    "campaign_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "arm_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "block": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "order_index": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "workload_name": {
+      "type": "string"
+    },
+    "workload_sha256": {
+      "type": "string"
+    },
+    "fingerprint_id": {
+      "type": "string",
+      "pattern": "^env-[0-9a-f]{64}$"
+    },
+    "hardware_profile_id": {
+      "type": "string",
+      "pattern": "^hwp-[0-9a-f]{64}$"
+    },
+    "measurement_kind": {
+      "enum": [
+        "hardware",
+        "simulated"
+      ],
+      "description": "'simulated' results come from statistical simulations and must never be presented as hardware measurements"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_s": {
+      "type": "number"
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "failed",
+        "timeout",
+        "oom-killed",
+        "telemetry-failed",
+        "invalid"
+      ]
+    },
+    "status_detail": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "value",
+          "unit"
+        ],
+        "properties": {
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": "string"
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "tool": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "telemetry": {
+      "type": "object",
+      "description": "Per-sampler availability and summaries"
+    },
+    "energy": {
+      "type": "object"
+    },
+    "stability_events": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "quality": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "raw_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "logs_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "campaign_id",
+    "arm_id",
+    "workload_name",
+    "workload_sha256",
+    "fingerprint_id",
+    "hardware_profile_id",
+    "measurement_kind",
+    "started_at",
+    "duration_s",
+    "status",
+    "metrics",
+    "tool",
+    "telemetry",
+    "energy",
+    "stability_events"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,19 @@
+{
+  "title": "Harness end-to-end: tiny-model llama-bench A/A (CPU)",
+  "purpose": "aa-calibration",
+  "hypothesis_ids": [],
+  "workload": "../smoke/llama-bench-tiny.json",
+  "arms": [
+    {"id": "A1", "description": "identical arm 1"},
+    {"id": "A2", "description": "identical arm 2"}
+  ],
+  "baseline_arm": "A1",
+  "design": {"blocks": 3, "runs_per_block": 1, "seed": 21},
+  "primary_metric": "tg_tokens_per_s",
+  "guard_metrics": ["pp_tokens_per_s"],
+  "e_min": 0.02,
+  "alpha": 0.05,
+  "fdr": "none",
+  "equivalence_margin": null,
+  "bootstrap_resamples": 2000
+}

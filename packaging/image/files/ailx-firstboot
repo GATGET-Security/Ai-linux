@@ -1,0 +1,9 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Generate per-machine SSH host keys on the data partition (images never ship host keys).
+set -eu
+install -d -m 0755 /data/ssh
+for t in ed25519 ecdsa; do
+  [ -f /data/ssh/ssh_host_${t}_key ] || ssh-keygen -q -t "$t" -N '' -C "ailx-$(hostname)" -f /data/ssh/ssh_host_${t}_key
+done
+systemd-tmpfiles --create ailx.conf || true

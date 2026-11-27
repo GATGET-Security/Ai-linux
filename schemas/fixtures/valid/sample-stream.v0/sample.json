@@ -1,0 +1,7 @@
+{
+  "kind": "sample",
+  "t_ns": 123456789,
+  "values": {
+    "gpu0.energy_mj": 1234567
+  }
+}

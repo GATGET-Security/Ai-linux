@@ -1,0 +1,123 @@
+# SPDX-License-Identifier: MIT
+# CPU-only CI (measurement foundation, system layer, packaging). No GPU, no hardware claims.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  LLAMA_CPP_COMMIT: 98cc730cc8f8f798cf83d22c23a072c205b0e510
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python: ["3.12", "3.13"]
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: python -m pip install -e ".[dev]" cyclonedx-bom
+      - name: Lint
+        run: |
+          ruff check src tests ../tools ../helpers ../packaging
+          ruff format --check src tests ../tools ../helpers ../packaging
+      - name: Type check (mypy strict)
+        run: mypy
+      - name: Tests (schemas, probe, statistics incl. A/A + 5% simulations, telemetry, store, CLI e2e)
+        run: python -m pytest -q -m "not llamacpp"
+      - name: SBOM of the Python environment
+        if: matrix.python == '3.13'
+        run: cyclonedx-py environment -o sbom-python.cdx.json
+      - uses: actions/upload-artifact@v4
+        if: matrix.python == '3.13'
+        with:
+          name: sbom-python
+          path: python/sbom-python.cdx.json
+
+  e2e-llamacpp:
+    runs-on: ubuntu-24.04
+    needs: checks
+    env:
+      AILX_ENGINES_DIR: ${{ github.workspace }}/engines
+      AILX_STATE_DIR: ${{ github.workspace }}/ailx-state
+      ENGINE_TARGETS: llama-bench,llama-perplexity,llama-quantize,llama-server
+      ENGINE_TARGETS_KEY: llama-bench_llama-perplexity_llama-quantize_llama-server  # cache keys must not contain commas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install harness and system layer
+        run: python -m pip install -e "python[dev]"
+      - name: Cache engine installation
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: engines
+          key: ailx-engine-llama.cpp-cpu-${{ env.LLAMA_CPP_COMMIT }}-${{ env.ENGINE_TARGETS_KEY }}-${{ hashFiles('python/src/ailx/system/data/engines.json') }}
+      - name: ailx engine install llama.cpp (pinned, CPU, isolated, with build manifest)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ailx engine install llama.cpp --variant cpu --jobs 4 --targets "$ENGINE_TARGETS"
+      - name: Re-select cached installation and verify integrity
+        run: |
+          ailx engine use llama.cpp "$(ls engines/llama.cpp | grep -v current | head -1)"
+          ailx engine verify llama.cpp
+          ailx engine env | tee -a "$GITHUB_ENV.tmp"
+          sed 's/^export //' "$GITHUB_ENV.tmp" >> "$GITHUB_ENV"
+      - name: Create tiny random-weight test model (not a real model)
+        run: |
+          mkdir -p tiny
+          curl -fsSL "https://raw.githubusercontent.com/ggml-org/llama.cpp/${LLAMA_CPP_COMMIT}/models/ggml-vocab-llama-spm.gguf" -o tiny/vocab.gguf
+          python tools/make_tiny_gguf.py --vocab tiny/vocab.gguf --out tiny/tiny-f16.gguf
+          "$(dirname "$AILX_LLAMA_BENCH")/llama-quantize" tiny/tiny-f16.gguf tiny/tiny-q4_0.gguf q4_0
+          python -c "import random; random.seed(1); w='the a of to and in is it that for on with as was by at be this from or an are'.split(); print(' '.join(random.choice(w) for _ in range(6000)))" > tiny/corpus.txt
+      - name: End-to-end (tiny-model campaign, KLD gate, managed llama-server, autotuning) with engine-managed binaries
+        working-directory: python
+        run: |
+          export AILX_LLAMA_CPP_BIN="$(dirname "$AILX_LLAMA_BENCH")" AILX_TINY_DIR="$GITHUB_WORKSPACE/tiny" AILX_TINY_MODEL="$GITHUB_WORKSPACE/tiny/tiny-f16.gguf"
+          python -m pytest -q -m llamacpp -rs
+      - name: System-layer smoke (diagnosis, install into an isolated root)
+        run: |
+          ailx --no-nvml doctor || true
+          AILX_ROOT="$RUNNER_TEMP/root" ailx system install --with-sudoers
+          AILX_ROOT="$RUNNER_TEMP/root" ailx system uninstall --purge
+
+  deb:
+    runs-on: ubuntu-24.04
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Build the .deb twice (reproducibility) and two versions for the upgrade test
+        run: |
+          python3 packaging/deb/build_deb.py --version 0.1.0-1 --out out/a
+          python3 packaging/deb/build_deb.py --version 0.1.0-1 --out out/b
+          cmp out/a/ailx_0.1.0-1_all.deb out/b/ailx_0.1.0-1_all.deb
+          python3 packaging/deb/build_deb.py --version 0.1.1-1 --out out/a
+          sha256sum out/a/*.deb
+      - name: Lintian
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q lintian
+          lintian --info --suppress-tags initial-upload-closes-no-bugs out/a/ailx_0.1.0-1_all.deb
+      - name: Lifecycle in Ubuntu 26.04 (install, use, upgrade with modified conffile, remove, purge)
+        run: |
+          docker run --rm -v "$PWD:/src:ro" ubuntu:26.04 sh -euc '
+            apt-get update -q && DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends \
+              python3 python3-numpy python3-scipy python3-jsonschema python3-zstandard python3-rfc8785 systemd sudo
+            sh /src/packaging/deb/test_lifecycle.sh / /src/out/a/ailx_0.1.0-1_all.deb /src/out/a/ailx_0.1.1-1_all.deb'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ailx-deb
+          path: out/a/*.deb

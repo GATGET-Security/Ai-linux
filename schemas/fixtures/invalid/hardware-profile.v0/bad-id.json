@@ -1,0 +1,118 @@
+{
+  "accelerators": [
+    {
+      "arch": null,
+      "device_id": "0x2684",
+      "driver": "nvidia",
+      "memory_domains": [
+        {
+          "kind": "unknown",
+          "provenance": "sysfs",
+          "size_bytes": null
+        }
+      ],
+      "model": null,
+      "pci_address": "0000:01:00.0",
+      "pcie": {
+        "current_speed": "16.0 GT/s PCIe",
+        "current_width": 16,
+        "max_speed": "16.0 GT/s PCIe",
+        "max_width": 16
+      },
+      "vendor": "nvidia",
+      "vendor_id": "0x10de"
+    }
+  ],
+  "collected_at": "2026-11-27T13:10:36.821475Z",
+  "cpu": {
+    "isa_flags": [
+      "avx",
+      "avx2",
+      "avx512_bf16",
+      "avx512_vnni",
+      "avx512f",
+      "fpu",
+      "sse",
+      "sse2"
+    ],
+    "llc_domains": [
+      {
+        "cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23
+        ],
+        "id": 0,
+        "level": 3,
+        "size_bytes": 100663296
+      },
+      {
+        "cpus": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "id": 1,
+        "level": 3,
+        "size_bytes": 33554432
+      }
+    ],
+    "logical_cpus": 32,
+    "model": "AMD Ryzen 9 7950X3D 16-Core Processor",
+    "smt_active": true,
+    "sockets": 1,
+    "vendor": "AuthenticAMD"
+  },
+  "id": "hwp-xyz",
+  "memory": {
+    "numa_nodes": 1,
+    "total_bytes": 67108864000
+  },
+  "power_interfaces": [
+    "nvml",
+    "powercap:intel-rapl:0:package-0"
+  ],
+  "schema": "ailx.hardware-profile/v0",
+  "storage": [
+    {
+      "link": {
+        "current_speed": "32.0 GT/s PCIe",
+        "current_width": 4
+      },
+      "model": "Example PCIe5 NVMe",
+      "name": "nvme0n1",
+      "rotational": false,
+      "size_bytes": 2000398934016,
+      "transport": "nvme"
+    }
+  ],
+  "unavailable": {
+    "accelerators.0000:01:00.0.memory": "no VRAM info in sysfs; NVML not used"
+  }
+}

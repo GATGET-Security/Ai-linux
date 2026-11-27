@@ -1,0 +1,23 @@
+{
+  "description": "Lower energy per token at an acceptable throughput cost.",
+  "name": "energy-efficiency",
+  "schema": "ailx.profile/v0",
+  "settings": [
+    {
+      "experimental": true,
+      "hypothesis_ids": [
+        "H-S-01"
+      ],
+      "knob": "gpu.nvidia.power_limit_fraction",
+      "rationale": "Memory-bound decode may keep most of its speed at 70% power (anecdotal evidence only, grade D).",
+      "value": "0.7"
+    },
+    {
+      "experimental": true,
+      "hypothesis_ids": [],
+      "knob": "cpu.cpufreq.epp",
+      "rationale": "CPU is not on the critical path of GPU-resident decode; untested.",
+      "value": "balance_power"
+    }
+  ]
+}

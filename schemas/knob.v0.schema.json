@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/knob.v0.schema.json",
+  "title": "AI Linux knob definition v0 (DRAFT, used from Phase 2)",
+  "description": "Metadata of a tunable. Phase 1.1 only validates definitions; nothing applies knobs.",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ailx.knob/v0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "level": {
+      "enum": [
+        "kernel-boot",
+        "kernel-runtime",
+        "driver-runtime",
+        "userspace",
+        "runtime",
+        "application"
+      ]
+    },
+    "mechanism": {
+      "type": "object"
+    },
+    "domain": {
+      "type": "object"
+    },
+    "tier": {
+      "enum": [
+        "T0",
+        "T1",
+        "T2",
+        "T3"
+      ]
+    },
+    "reversibility": {
+      "enum": [
+        "process-restart",
+        "runtime",
+        "reboot",
+        "image"
+      ]
+    },
+    "security_class": {
+      "enum": [
+        "allowed",
+        "explicit-opt-in",
+        "forbidden"
+      ]
+    },
+    "quality_class": {
+      "enum": [
+        "lossless",
+        "lossy",
+        "configurable-lossy",
+        "n/a"
+      ]
+    },
+    "requires": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "conflicts_with_services": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "validation_status": {
+      "enum": [
+        "authored",
+        "built",
+        "unit-tested",
+        "hw-queued",
+        "hw-validated",
+        "hw-failed"
+      ]
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "description",
+    "level",
+    "mechanism",
+    "tier",
+    "reversibility",
+    "security_class",
+    "quality_class",
+    "evidence",
+    "validation_status"
+  ],
+  "additionalProperties": false
+}

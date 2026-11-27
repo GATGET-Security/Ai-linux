@@ -1,0 +1,24 @@
+{
+  "adapter": "synthetic",
+  "description": "Harness self-test: seeded log-normal values, no timing. Results are labeled 'simulated'.",
+  "metrics": [],
+  "model": null,
+  "name": "synthetic-simulated",
+  "output_len_policy": "n/a",
+  "params": {
+    "mode": "simulated",
+    "noise_cv": 0.02,
+    "slowdown": 1.0
+  },
+  "runtime": {
+    "binary": "python"
+  },
+  "schema": "ailx.workload/v0",
+  "telemetry": [
+    "psi"
+  ],
+  "timeout_s": 60,
+  "type": "synthetic",
+  "version": 1,
+  "warmup_runs": 0
+}

@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MIT
+# AI Linux state (journal), engines and models — separate from the OS, writable by group ailx.
+d /var/lib/ailx               2770 root ailx -
+d /var/lib/ailx/transactions  2770 root ailx -
+d /var/lib/ailx/engines       2775 root ailx -
+d /var/lib/ailx/models        2775 root ailx -
+d /var/lib/ailx/profiles      2775 root ailx -

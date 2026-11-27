@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/model-analysis.v0.schema.json",
+  "title": "AI Linux model analysis v0",
+  "description": "Facts read from a model file (GGUF header or config.json + safetensors headers) and formulas over them: weights per layer and per type, expert weights, active bytes per token, KV elements per token per layer. The id hashes everything except analyzed_at and source, so one model has one id regardless of its path.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "analyzed_at", "source", "format", "architecture", "name", "gguf_version", "file_bytes", "params", "weights", "hparams", "kv_elements_per_token_per_layer", "notes"],
+  "properties": {
+    "schema": {"const": "ailx.model-analysis/v0"},
+    "id": {"type": "string", "pattern": "^mdl-[0-9a-f]{64}$"},
+    "analyzed_at": {"type": "string", "format": "date-time"},
+    "source": {"type": "object", "required": ["path"], "properties": {"path": {"type": "string"}}},
+    "format": {"enum": ["gguf", "safetensors"]},
+    "architecture": {"type": "string"},
+    "name": {"type": ["string", "null"]},
+    "gguf_version": {"type": ["integer", "null"]},
+    "file_bytes": {"type": "integer", "minimum": 0},
+    "params": {"type": "integer", "minimum": 0},
+    "weights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_bytes", "bits_per_weight", "by_type_bytes", "dominant_type", "file_type", "per_layer_bytes", "per_layer_expert_bytes", "embedding_bytes", "output_bytes", "active_bytes_per_token"],
+      "properties": {
+        "total_bytes": {"type": "integer", "minimum": 0},
+        "bits_per_weight": {"type": ["number", "null"], "minimum": 0},
+        "by_type_bytes": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "dominant_type": {"type": ["string", "null"]},
+        "file_type": {"type": ["integer", "null"]},
+        "per_layer_bytes": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "per_layer_expert_bytes": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "embedding_bytes": {"type": "integer", "minimum": 0},
+        "output_bytes": {"type": "integer", "minimum": 0},
+        "active_bytes_per_token": {"type": "integer", "minimum": 0}
+      }
+    },
+    "hparams": {
+      "type": "object",
+      "required": ["n_layer", "n_embd", "n_head", "n_head_kv", "key_length", "value_length", "n_ctx_train", "n_vocab", "n_expert", "n_expert_used"],
+      "properties": {
+        "n_layer": {"type": "integer", "minimum": 0},
+        "n_embd": {"type": "integer", "minimum": 0},
+        "n_head": {"type": "integer", "minimum": 0},
+        "n_head_kv": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "key_length": {"type": "integer", "minimum": 0},
+        "value_length": {"type": "integer", "minimum": 0},
+        "n_ctx_train": {"type": "integer", "minimum": 0},
+        "n_vocab": {"type": ["integer", "null"], "minimum": 0},
+        "n_expert": {"type": "integer", "minimum": 0},
+        "n_expert_used": {"type": "integer", "minimum": 0}
+      }
+    },
+    "kv_elements_per_token_per_layer": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+    "notes": {"type": "array", "items": {"type": "string"}}
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/runtime-instance.v0.schema.json",
+  "title": "AI Linux runtime instance v0",
+  "description": "A managed inference process: command, model, engine build, configuration source, priority class, CPU placement, admission decision and predicted memory. Records live in a group-writable directory and are untrusted: process identity is re-verified against /proc before any signal.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "name", "cmd", "host", "port", "model", "engine", "config_source", "engine_config", "explicit_settings", "priority", "placement", "process", "plan", "admission", "pid", "start_ticks", "uid", "log", "status", "started_at", "stopped_at", "stop_reason"],
+  "properties": {
+    "schema": {"const": "ailx.runtime-instance/v0"},
+    "name": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"},
+    "cmd": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "host": {"type": "string"},
+    "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+    "model": {"type": "object", "required": ["path", "id"], "properties": {"path": {"type": "string"}, "id": {"type": "string", "pattern": "^mdl-[0-9a-f]{64}$"}}},
+    "engine": {"type": "object", "required": ["engine", "install_id", "binary"]},
+    "config_source": {"enum": ["engine-default", "planned", "tuned"]},
+    "engine_config": {"type": "object"},
+    "explicit_settings": {"type": "object", "description": "settings passed explicitly; everything else is the engine default"},
+    "priority": {"enum": ["interactive", "batch", "background"]},
+    "placement": {
+      "type": "object",
+      "required": ["policy", "cpus", "experimental"],
+      "properties": {
+        "policy": {"type": "string"},
+        "cpus": {"type": ["array", "null"], "items": {"type": "integer", "minimum": 0}},
+        "experimental": {"type": "boolean"}
+      }
+    },
+    "process": {"type": "object", "required": ["nice", "oom_score_adj"]},
+    "plan": {
+      "type": "object",
+      "required": ["mode", "device", "host_bytes", "device_bytes", "estimate"],
+      "properties": {
+        "mode": {"enum": ["gpu-full", "hybrid-layers", "hybrid-moe", "cpu", "infeasible"]},
+        "device": {"type": "string"},
+        "host_bytes": {"type": "integer", "minimum": 0},
+        "device_bytes": {"type": "integer", "minimum": 0},
+        "estimate": {"type": "string"}
+      }
+    },
+    "admission": {"type": "object", "required": ["admitted", "reasons"]},
+    "pid": {"type": "integer", "minimum": 1},
+    "start_ticks": {"type": ["integer", "null"]},
+    "uid": {"type": "integer", "minimum": 0},
+    "log": {"type": "string"},
+    "status": {"enum": ["running", "stopped", "exited"]},
+    "started_at": {"type": "string", "format": "date-time"},
+    "stopped_at": {"type": ["string", "null"], "format": "date-time"},
+    "stop_reason": {"type": ["string", "null"]},
+    "live": {"type": "object"}
+  }
+}

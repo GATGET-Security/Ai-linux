@@ -1,0 +1,64 @@
+{
+  "admission": {
+    "admitted": true,
+    "reasons": []
+  },
+  "cmd": [
+    "/var/lib/ailx/engines/llama.cpp/98cc730cc8f8-cuda/bin/llama-server",
+    "-m",
+    "/models/m.gguf"
+  ],
+  "config_source": "engine-default",
+  "engine": {
+    "binary": "/x/llama-server",
+    "engine": "llama.cpp",
+    "install_id": "98cc730cc8f8-cuda"
+  },
+  "engine_config": {
+    "batch_size": 2048,
+    "cache_type_k": "f16",
+    "cache_type_v": "f16",
+    "ctx_size": 8192,
+    "flash_attn": "auto",
+    "n_cpu_moe": 0,
+    "n_gpu_layers": 33,
+    "parallel": 1,
+    "ubatch_size": 512
+  },
+  "explicit_settings": {},
+  "host": "127.0.0.1",
+  "log": "/var/lib/ailx/runtime/logs/chat.log",
+  "model": {
+    "id": "mdl-4fd1add820d605776b1af273070c63ab2dc8a4100a62770de7d7ae9071295d45",
+    "name": "dense-8b-q4",
+    "path": "/models/m.gguf"
+  },
+  "name": "chat",
+  "pid": 4242,
+  "placement": {
+    "cpus": null,
+    "experimental": false,
+    "policy": "none"
+  },
+  "plan": {
+    "backend": "cuda",
+    "device": "nvidia:0",
+    "device_bytes": 6320909619,
+    "estimate": "uncalibrated estimate (H-R-11): weights/KV exact from the file, buffers heuristic",
+    "host_bytes": 461091635,
+    "mode": "gpu-full"
+  },
+  "port": 8080,
+  "priority": "interactive",
+  "process": {
+    "nice": 0,
+    "oom_score_adj": 0
+  },
+  "schema": "ailx.runtime-instance/v0",
+  "start_ticks": 123456,
+  "started_at": "2026-11-27T00:00:00Z",
+  "status": "running",
+  "stop_reason": null,
+  "stopped_at": null,
+  "uid": 1000
+}

@@ -1,0 +1,109 @@
+{
+  "alpha": 0.05,
+  "arms": [
+    {
+      "description": "slowdown 1.0",
+      "id": "baseline"
+    }
+  ],
+  "baseline_arm": "baseline",
+  "bootstrap_resamples": 500,
+  "calibration_id": null,
+  "created_at": "2026-11-27T13:10:36.861849Z",
+  "design": {
+    "blocks": 2,
+    "runs_per_block": 2,
+    "seed": 3,
+    "type": "rmit"
+  },
+  "e_min": 0.02,
+  "equivalence_margin": null,
+  "fdr": "bh",
+  "guard_metrics": [
+    "duration_s"
+  ],
+  "hypothesis_ids": [],
+  "id": "cmp-60d7819acf45b99c831de140827b2afcb214dd07188f1c24b7274efa6ac8a636",
+  "primary_metric": "work_rate",
+  "purpose": "confirmatory",
+  "schedule": [
+    {
+      "arm": "faster5",
+      "block": 0,
+      "index": 0
+    },
+    {
+      "arm": "faster5",
+      "block": 0,
+      "index": 1
+    },
+    {
+      "arm": "baseline",
+      "block": 0,
+      "index": 2
+    },
+    {
+      "arm": "baseline",
+      "block": 0,
+      "index": 3
+    },
+    {
+      "arm": "faster5",
+      "block": 1,
+      "index": 4
+    },
+    {
+      "arm": "baseline",
+      "block": 1,
+      "index": 5
+    },
+    {
+      "arm": "baseline",
+      "block": 1,
+      "index": 6
+    },
+    {
+      "arm": "faster5",
+      "block": 1,
+      "index": 7
+    }
+  ],
+  "schema": "ailx.campaign/v0",
+  "title": "Harness self-test: injected 5% improvement (simulated)",
+  "workload": {
+    "adapter": "synthetic",
+    "description": "Harness self-test: seeded log-normal values, no timing. Results are labeled 'simulated'.",
+    "metrics": [
+      {
+        "better": "higher",
+        "name": "work_rate",
+        "unit": "units/s"
+      },
+      {
+        "better": "lower",
+        "name": "duration_s",
+        "unit": "s"
+      }
+    ],
+    "model": null,
+    "name": "synthetic-simulated",
+    "output_len_policy": "n/a",
+    "params": {
+      "mode": "simulated",
+      "noise_cv": 0.02,
+      "slowdown": 1.0
+    },
+    "runtime": {
+      "binary": "python"
+    },
+    "schema": "ailx.workload/v0",
+    "telemetry": [
+      "psi"
+    ],
+    "timeout_s": 60,
+    "type": "synthetic",
+    "version": 1,
+    "warmup_runs": 0
+  },
+  "workload_sha256": "2bd3d8e5cc8b08242fe43175528ab856142a3223f584ef946c08da208c586374"
+}

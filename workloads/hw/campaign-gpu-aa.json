@@ -1,0 +1,19 @@
+{
+  "title": "HW-1: A/A calibration, llama-bench GPU decode (workstation)",
+  "purpose": "aa-calibration",
+  "hypothesis_ids": ["H-S-03"],
+  "workload": "llama-bench-gpu.json",
+  "arms": [
+    {"id": "A1", "description": "stock configuration"},
+    {"id": "A2", "description": "stock configuration (identical)"}
+  ],
+  "baseline_arm": "A1",
+  "design": {"blocks": 10, "runs_per_block": 1, "seed": 101},
+  "primary_metric": "tg_tokens_per_s",
+  "guard_metrics": ["pp_tokens_per_s", "gpu_energy_j"],
+  "e_min": 0.02,
+  "alpha": 0.05,
+  "fdr": "none",
+  "equivalence_margin": null,
+  "bootstrap_resamples": 10000
+}

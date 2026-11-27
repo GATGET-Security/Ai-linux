@@ -1,0 +1,91 @@
+# ADR-0005: Layer-first delivery; base distribution for an own image decided by a measured bake-off
+
+> Status: **Accepted** (maintainer decision 2026-11-26, including the Phase 0.1 review amendments below) · Date: 2026-11-26 · Deciders: maintainers
+
+## Context
+
+The brief asks to compare Debian, Arch, CachyOS, Fedora, NixOS, Buildroot and
+Yocto as foundations without deciding prematurely. Research
+(`docs/research/05-base-distributions-and-licensing.md`) found:
+
+- No distribution dominates; with default weights Ubuntu 26.04 LTS scores
+  highest *as a host* (≈77), Debian and Fedora bootc tie (≈69), NixOS ≈66,
+  CachyOS/Arch/Yocto ≈55–58, Buildroot ≈48, each ±10 points. With
+  immutability-first weights, Fedora bootc and Ubuntu are level [D-*, §1.7–1.8].
+- The GPU stack (driver packaging, signed modules, CUDA/ROCm availability)
+  separates distributions more than the kernel does [D-12][D-13][D-15][D-35][D-43][D-72].
+- Whether OS-level tuning matters at all for local AI is unproven
+  (H-L-01, H-D-01, H-D-03); no primary benchmark data exists.
+- Building and maintaining an own image carries release-engineering, CVE and
+  (likely) EU CRA steward duties [D-89].
+
+The project's value — measured, quality-gated, reversible optimization — does
+not require an own image to be demonstrated, but some optimizations (kernel
+config, signed modules, atomic rollback of the whole stack) eventually do.
+
+## Options considered
+
+1. **Pick a base now and build an own image** — premature; no data; highest
+   effort before any value is shown.
+2. **Layer-first (strategy a+b)**: ship AI Linux as a distro-agnostic layer
+   (CLI, daemon, systemd units, sysext/confext where useful, OCI runtime
+   bundles, BPF schedulers) on existing distributions; defer the own image.
+3. **Never build an image** — cannot deliver kernel-, driver- and
+   rollback-level guarantees.
+
+## Decision
+
+1. **Phases 1–2: layer mode.** Primary development and baseline host:
+   Ubuntu 26.04 LTS (identical to the benchmark baseline, ADR-0006). Secondary
+   test hosts: Fedora 45 (incl. bootc), Debian 13, Arch/CachyOS, NixOS.
+   Runtime bundles are OCI images pinned by digest; host drivers come from the
+   host distribution.
+2. **Own-image prototypes in CI only** (no user-facing image before Phase 3):
+   primary candidates **Fedora bootc** and **Debian + mkosi**; an
+   **Ubuntu + mkosi** image serves as a control (inherits Canonical-signed
+   NVIDIA modules). NixOS remains a candidate for reproducible runtime layers.
+   Buildroot and Yocto are reserved for a possible later appliance/edge track.
+3. **Decision gate**: the base for the own image is chosen in a new ADR after
+   the deciding experiments E-01…E-09 in
+   `docs/research/05-base-distributions-and-licensing.md` §1.9 (ISA builds,
+   kernel/scheduler, version lag, module signing, rollback drills, maintenance
+   effort, reproducibility, sysext portability, SBOM/licence review), run with
+   the benchmark methodology of `docs/architecture/benchmarking.md`.
+
+## Consequences
+
+- Value can be shown (or disproven) on mainstream distributions before the
+  heavy investment of an own image.
+- Users can adopt AI Linux without reinstalling their OS.
+- Kernel-level and boot-level features (custom kernel config, signed
+  out-of-tree modules, full-stack rollback) are limited in layer mode; they are
+  explored in CI image prototypes and on dedicated test installs.
+- The support matrix of host distributions must stay small (Ubuntu LTS first).
+
+## Validation / revisit triggers
+
+- If Phase 1–2 measurements show that the largest gains need kernel/boot-level
+  control, accelerate the image track.
+- If measurements show OS-level gains are negligible (H-L-01 confirmed), keep
+  layer mode as the main product and treat the image as a convenience.
+
+## Phase 0.1 review (2026-11-26)
+
+**Recommendation:** Accept with amendments. Status changes remain a maintainer decision.
+
+Amendments proposed by the review (`docs/research/08-architecture-review.md` §3):
+
+1. **Image-track trigger** (added to the decision): the own-image track starts
+   when any of these holds — (a) a hardware-validated gain requires kernel
+   config, boot parameters or signed out-of-tree modules that layer mode cannot
+   deliver; (b) full-stack rollback (H-L-05) is required for a validated
+   profile; (c) maintainers decide so after Phase 2.
+2. **Capability detection**: layer mode detects missing kernel features
+   (`/sys/kernel/sched_ext`, `SCHED_CACHE` presence, dmem controller, lockdown
+   state) and disables dependent knobs instead of failing [V-01][V-04][V-05].
+3. The vision remains a full compute platform; layer mode is the delivery
+   vehicle, not the product boundary.
+
+## Maintainer decision (2026-11-26)
+
+Accepted together with the Phase 0.1 review amendments above; the amendments are part of the decision.

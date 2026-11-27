@@ -1,0 +1,35 @@
+{
+  "artifacts": [
+    {
+      "path": "bin/x",
+      "sha256": "xyz",
+      "size": 1
+    }
+  ],
+  "build": {
+    "flags": [
+      "-DGGML_NATIVE=OFF"
+    ],
+    "system": "cmake",
+    "targets": [
+      "llama-bench"
+    ]
+  },
+  "engine": "llama.cpp",
+  "host": {},
+  "install_id": "98cc730cc8f8-cpu",
+  "installed_at": "2026-11-27T00:00:00.000000Z",
+  "kind": "cmake",
+  "licence": "MIT",
+  "notes": [],
+  "schema": "ailx.engine-manifest/v0",
+  "source": {
+    "commit": "98cc730cc8f8f798cf83d22c23a072c205b0e510",
+    "url": "https://github.com/ggml-org/llama.cpp"
+  },
+  "toolchain": {
+    "cmake": "cmake version 3.28.3"
+  },
+  "variant": "cpu",
+  "version": "98cc730cc8f8f798cf83d22c23a072c205b0e510"
+}

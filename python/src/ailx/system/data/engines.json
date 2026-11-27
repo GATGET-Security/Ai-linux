@@ -1,0 +1,25 @@
+{
+  "llama.cpp": {
+    "kind": "cmake",
+    "licence": "MIT",
+    "source": "https://github.com/ggml-org/llama.cpp",
+    "ref": "98cc730cc8f8f798cf83d22c23a072c205b0e510",
+    "common_flags": ["-DCMAKE_BUILD_TYPE=Release", "-DLLAMA_CURL=OFF", "-DLLAMA_BUILD_TESTS=OFF", "-DLLAMA_BUILD_SERVER=ON", "-DBUILD_SHARED_LIBS=OFF"],
+    "variants": {
+      "cpu": ["-DGGML_NATIVE=OFF"],
+      "cpu-native": ["-DGGML_NATIVE=ON"],
+      "cuda": ["-DGGML_CUDA=ON", "-DGGML_NATIVE=OFF"],
+      "vulkan": ["-DGGML_VULKAN=ON", "-DGGML_NATIVE=OFF"]
+    },
+    "targets": ["llama-bench", "llama-perplexity", "llama-quantize", "llama-server", "llama-cli"],
+    "smoke": ["llama-bench", "--version"]
+  },
+  "vllm": {
+    "kind": "pip",
+    "licence": "Apache-2.0",
+    "package": "vllm",
+    "version": "0.34.0",
+    "variants": {"cuda": [], "cpu": []},
+    "smoke": ["vllm", "--version"]
+  }
+}

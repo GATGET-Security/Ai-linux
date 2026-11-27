@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GATGET-Security/Ai-linux/schemas/sample-stream.v0.schema.json",
+  "title": "AI Linux sampler line protocol v0",
+  "description": "One JSON object per line on a sampler's stdout. First line is a header. Timestamps are CLOCK_MONOTONIC nanoseconds.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "schema",
+        "kind",
+        "sampler",
+        "version",
+        "clock",
+        "available",
+        "metrics"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ailx.sample-stream/v0"
+        },
+        "kind": {
+          "const": "header"
+        },
+        "sampler": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "clock": {
+          "const": "CLOCK_MONOTONIC"
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "simulated": {
+          "type": "boolean"
+        },
+        "interval_s": {
+          "type": "number"
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "unit",
+              "type"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "counter",
+                  "gauge"
+                ]
+              },
+              "wrap": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "t_ns",
+        "values"
+      ],
+      "properties": {
+        "kind": {
+          "const": "sample"
+        },
+        "t_ns": {
+          "type": "integer"
+        },
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "t_ns",
+        "name"
+      ],
+      "properties": {
+        "kind": {
+          "const": "event"
+        },
+        "t_ns": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "attrs": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

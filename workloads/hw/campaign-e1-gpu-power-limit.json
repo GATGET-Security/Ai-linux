@@ -1,0 +1,23 @@
+{
+  "title": "E1: RTX 4090 power limit 70% vs default — decode speed and GPU energy",
+  "purpose": "confirmatory",
+  "hypothesis_ids": ["H-S-01"],
+  "workload": "llama-bench-gpu.json",
+  "arms": [
+    {"id": "pl-default", "description": "default power limit (450 W on the reference RTX 4090; verify with nvidia-smi -q -d POWER)",
+     "setup_commands": [["sudo", "-n", "nvidia-smi", "-pl", "450"]],
+     "operator_hooks_note": "operator-supplied; requires a sudoers rule for nvidia-smi -pl; reductions within vendor range only"},
+    {"id": "pl-70", "description": "power limit 315 W (70% of 450 W)",
+     "setup_commands": [["sudo", "-n", "nvidia-smi", "-pl", "315"]],
+     "operator_hooks_note": "operator-supplied; reverted by the pl-default arm and after the campaign"}
+  ],
+  "baseline_arm": "pl-default",
+  "design": {"blocks": 10, "runs_per_block": 1, "seed": 201},
+  "primary_metric": "gpu_energy_j",
+  "guard_metrics": ["tg_tokens_per_s", "pp_tokens_per_s"],
+  "e_min": 0.05,
+  "alpha": 0.05,
+  "fdr": "bh",
+  "equivalence_margin": 0.05,
+  "bootstrap_resamples": 10000
+}

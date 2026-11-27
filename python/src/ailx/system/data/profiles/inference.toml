@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: MIT
+# Every setting is a hypothesis until hardware-validated (ADR-0010); all are experimental and inactive by default.
+schema = "ailx.profile/v0"
+name = "inference"
+description = "Latency-oriented local inference (LLM serving, interactive chat)."
+
+[[settings]]
+knob = "cpu.cpufreq.epp"
+value = "performance"
+experimental = true
+hypothesis_ids = []
+rationale = "Lower frequency-ramp latency for GPU feeder and sampling threads; untested, no hypothesis registered yet."
+
+[[settings]]
+knob = "kernel.mm.thp.enabled"
+value = "always"
+experimental = true
+hypothesis_ids = ["H-K-05"]
+rationale = "Fewer dTLB misses for anonymous weight buffers (--no-mmap, CPU offload)."
+
+[[settings]]
+knob = "vm.swappiness"
+value = "10"
+experimental = true
+hypothesis_ids = []
+rationale = "Keep resident model pages under memory pressure (O-K-05 memory profile); untested."

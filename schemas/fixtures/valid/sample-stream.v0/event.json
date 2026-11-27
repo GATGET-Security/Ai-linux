@@ -1,0 +1,8 @@
+{
+  "attrs": {
+    "reason": "thermal"
+  },
+  "kind": "event",
+  "name": "throttle",
+  "t_ns": 123456999
+}

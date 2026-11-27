@@ -1,0 +1,53 @@
+{
+  "accelerators": [
+    {
+      "arch": null,
+      "device_id": "0x2684",
+      "driver": "nvidia",
+      "memory_domains": [
+        {
+          "kind": "unknown",
+          "provenance": "sysfs",
+          "size_bytes": null
+        }
+      ],
+      "model": null,
+      "pci_address": "0000:01:00.0",
+      "pcie": {
+        "current_speed": "16.0 GT/s PCIe",
+        "current_width": 16,
+        "max_speed": "16.0 GT/s PCIe",
+        "max_width": 16
+      },
+      "vendor": "nvidia",
+      "vendor_id": "0x10de"
+    }
+  ],
+  "collected_at": "2026-11-27T13:10:36.821475Z",
+  "id": "hwp-d46694712fd6477da4becc44827fc9f4815ed58342a089fa153812e95b957518",
+  "memory": {
+    "numa_nodes": 1,
+    "total_bytes": 67108864000
+  },
+  "power_interfaces": [
+    "nvml",
+    "powercap:intel-rapl:0:package-0"
+  ],
+  "schema": "ailx.hardware-profile/v0",
+  "storage": [
+    {
+      "link": {
+        "current_speed": "32.0 GT/s PCIe",
+        "current_width": 4
+      },
+      "model": "Example PCIe5 NVMe",
+      "name": "nvme0n1",
+      "rotational": false,
+      "size_bytes": 2000398934016,
+      "transport": "nvme"
+    }
+  ],
+  "unavailable": {
+    "accelerators.0000:01:00.0.memory": "no VRAM info in sysfs; NVML not used"
+  }
+}

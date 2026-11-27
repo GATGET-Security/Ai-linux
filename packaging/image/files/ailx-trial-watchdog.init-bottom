@@ -1,0 +1,29 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# A/B trial boots only (ailx.trial=1, ADR-0012): arm a watchdog before handing over to the new slot.
+# systemd takes it over (RuntimeWatchdogSec) and the boot-health service confirms the slot. If the slot
+# never starts systemd (e.g. initramfs falls back to /bin/sh as init), the watchdog resets the machine and
+# GRUB boots the default slot (next_slot was cleared before this boot). Normal boots are not affected:
+# Ubuntu blacklists watchdog drivers for autoloading, and this script exits unless it is a trial boot.
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in prereqs) prereqs; exit 0 ;; esac
+grep -qw 'ailx.trial=1' /proc/cmdline || exit 0
+wait_dev() { i=0; while [ ! -c /dev/watchdog0 ] && [ "$i" -lt 5 ]; do sleep 1; i=$((i + 1)); done; }
+# The initramfs exports MODPROBE_OPTIONS=-qb; '-b' applies Ubuntu's watchdog blacklist even to modules
+# requested by name, so unset it for these calls (an *empty* value made kmod 34.2 abort in our test).
+load() { (unset MODPROBE_OPTIONS; modprobe -q "$@") 2>/dev/null || true; }
+for m in i6300esb iTCO_wdt sp5100_tco wdat_wdt; do load "$m"; done
+wait_dev
+if [ ! -c /dev/watchdog0 ]; then
+	# no hardware watchdog: the kernel soft watchdog still catches a userspace that never starts
+	load softdog soft_margin=120
+	wait_dev
+fi
+if [ -c /dev/watchdog0 ]; then
+	# write without the magic close character 'V': closing the device leaves the watchdog running
+	printf 'x' >/dev/watchdog0 && echo "ailx: watchdog armed for trial boot ($(cat /sys/class/watchdog/watchdog0/identity 2>/dev/null))"
+else
+	echo "ailx: no watchdog device; a hung trial boot needs a manual reset"
+fi
+exit 0

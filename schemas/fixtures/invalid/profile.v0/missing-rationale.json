@@ -1,0 +1,12 @@
+{
+  "description": "Latency-oriented local inference (LLM serving, interactive chat).",
+  "name": "inference",
+  "schema": "ailx.profile/v0",
+  "settings": [
+    {
+      "experimental": true,
+      "knob": "vm.swappiness",
+      "value": "10"
+    }
+  ]
+}

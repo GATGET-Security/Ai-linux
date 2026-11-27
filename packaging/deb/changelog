@@ -1,0 +1,7 @@
+ailx (@VERSION@) resolute; urgency=medium
+
+  * Experimental prototype package of the AI Linux system layer (ailx),
+    measurement harness (ailx-bench) and AI compute engine (capabilities,
+    model planning, managed runtime, autotuning). Not hardware-validated.
+
+ -- AI Linux contributors <maintainers@ai-linux.invalid>  Fri, 27 Nov 2026 00:00:00 +0000

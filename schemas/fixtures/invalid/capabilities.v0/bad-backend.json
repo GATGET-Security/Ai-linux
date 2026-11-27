@@ -1,0 +1,235 @@
+{
+  "accelerators": [
+    {
+      "backends": [
+        "cuda"
+      ],
+      "compute_capability": null,
+      "driver": "nvidia",
+      "driver_version": "580.00",
+      "host_link": {
+        "current_speed": "16.0 GT/s PCIe",
+        "current_width": 16,
+        "max_speed": "16.0 GT/s PCIe",
+        "max_width": 16
+      },
+      "id": "nvidia:0",
+      "index": 0,
+      "kind": "gpu",
+      "memory": {
+        "bandwidth": {
+          "bytes_per_s": 1008000000000.0,
+          "kind": "theoretical",
+          "provenance": "datasheet:H-12"
+        },
+        "kind": "discrete",
+        "total_bytes": 25757220864
+      },
+      "name": "NVIDIA GeForce RTX 4090",
+      "pci_address": "0000:01:00.0",
+      "power_limit_default_w": null,
+      "source": "sysfs",
+      "vendor": "nvidia"
+    }
+  ],
+  "backends": [
+    {
+      "backend": "opencl"
+    }
+  ],
+  "collected_at": "2026-11-27T00:00:00Z",
+  "cpu": {
+    "asymmetric_llc": true,
+    "caches_per_core_bytes": {
+      "l1d": 32768,
+      "l2": 1048576
+    },
+    "isa": {
+      "ai_extensions": [
+        "avx",
+        "avx2",
+        "avx512f",
+        "avx512_vnni",
+        "avx512_bf16"
+      ],
+      "level": "x86-64"
+    },
+    "llc_domains": [
+      {
+        "cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23
+        ],
+        "id": 0,
+        "l3_bytes": 100663296,
+        "max_khz": 5250000,
+        "numa_node": 0,
+        "physical_cores": 8,
+        "primary_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "role": "large-cache"
+      },
+      {
+        "cpus": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "id": 1,
+        "l3_bytes": 33554432,
+        "max_khz": 5758000,
+        "numa_node": 0,
+        "physical_cores": 8,
+        "primary_cpus": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "role": "frequency"
+      }
+    ],
+    "logical_cpus": 32,
+    "model": "AMD Ryzen 9 7950X3D 16-Core Processor",
+    "physical_cores": 16,
+    "smt_active": true,
+    "sockets": 1,
+    "topology_source": "sysfs core_id",
+    "vendor": "AuthenticAMD",
+    "x3d_mode": "frequency"
+  },
+  "engines": [
+    {
+      "backend": "cpu",
+      "current": false,
+      "engine": "llama.cpp",
+      "install_id": "98cc730cc8f8-cpu",
+      "variant": "cpu"
+    },
+    {
+      "backend": "cuda",
+      "current": false,
+      "engine": "llama.cpp",
+      "install_id": "98cc730cc8f8-cuda",
+      "variant": "cuda"
+    }
+  ],
+  "hardware_profile_id": "hwp-d46694712fd6477da4becc44827fc9f4815ed58342a089fa153812e95b957518",
+  "id": "cap-2ccda8e0fcdd6ee28222a900675c46d4c8b532229d3c2d076631b6873ba8ad73",
+  "live": {
+    "hugepages_free": null,
+    "loadavg": [],
+    "memory_available_bytes": 64424509440,
+    "models_dir_free_bytes": 57197350912,
+    "numa_free_bytes": {
+      "0": 61440000000
+    },
+    "nvidia:0": {
+      "vram_free_bytes": 25165824000
+    },
+    "swap_free_bytes": null
+  },
+  "memory": {
+    "bandwidth": {
+      "bytes_per_s": null,
+      "provenance": "unknown (needs DIMM data or a measurement)"
+    },
+    "hugepages": {
+      "size_bytes": null,
+      "total": null
+    },
+    "swap_total_bytes": null,
+    "thp": "always [madvise] never",
+    "total_bytes": 67108864000
+  },
+  "numa": [
+    {
+      "cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "memory_total_bytes": 67108864000,
+      "node": 0
+    }
+  ],
+  "schema": "ailx.capabilities/v0",
+  "storage": {
+    "device": null,
+    "filesystem": null,
+    "models_dir": "/var/lib/ailx/models"
+  },
+  "unavailable": {
+    "accelerators.0000:01:00.0.memory": "no VRAM info in sysfs; NVML not used",
+    "memory.bandwidth": "system memory bandwidth unknown: decode bounds for CPU layers not computed",
+    "nvidia:0.memory": "no NVML/nvidia-smi: VRAM size and bandwidth unknown"
+  }
+}

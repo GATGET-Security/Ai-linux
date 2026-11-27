@@ -1,0 +1,123 @@
+{
+  "arm_summaries": {
+    "baseline": {
+      "duration_s": {
+        "cv": 0.02298819196722061,
+        "median": 1.00339915149004,
+        "n": 4,
+        "p10": 0.9771075818112246,
+        "p90": 1.0156103331457105,
+        "unit": "s"
+      },
+      "work_rate": {
+        "cv": 0.023325928577843515,
+        "median": 49.830645396624405,
+        "n": 4,
+        "p10": 49.23418880079019,
+        "p90": 51.18621653201111,
+        "unit": "units/s"
+      }
+    },
+    "faster5": {
+      "duration_s": {
+        "cv": 0.026936428494713557,
+        "median": 0.949353126378975,
+        "n": 4,
+        "p10": 0.9361759887412799,
+        "p90": 0.9802537506814616,
+        "unit": "s"
+      },
+      "work_rate": {
+        "cv": 0.026476112864137456,
+        "median": 52.66810186230782,
+        "n": 4,
+        "p10": 51.024740998516776,
+        "p90": 53.41126240951016,
+        "unit": "units/s"
+      }
+    }
+  },
+  "calibration": null,
+  "campaign_id": "cmp-60d7819acf45b99c831de140827b2afcb214dd07188f1c24b7274efa6ac8a636",
+  "comparisons": [
+    {
+      "arm": "faster5",
+      "better": "higher",
+      "calibrated": false,
+      "ci_method": "BCa",
+      "hodges_lehmann_shift": 2.650925772712334,
+      "improvement": 0.0569419971003553,
+      "improvement_ci": [
+        0.01283566631834221,
+        0.08690549017551752
+      ],
+      "median_baseline": 49.830645396624405,
+      "median_candidate": 52.66810186230782,
+      "metric": "work_rate",
+      "n_baseline": 4,
+      "n_candidate": 4,
+      "notes": [
+        "uncalibrated: no A/A noise floor; threshold = e_min only",
+        "absence of evidence is not evidence of equivalence",
+        "fdr: benjamini-hochberg"
+      ],
+      "p_adjusted": 0.05714285714285714,
+      "p_value": 0.05714285714285714,
+      "ratio": 1.0569419971003553,
+      "role": "primary",
+      "threshold": 0.02,
+      "verdict": "no-detectable-difference"
+    },
+    {
+      "arm": "faster5",
+      "better": "lower",
+      "calibrated": false,
+      "ci_method": "BCa",
+      "hodges_lehmann_shift": -0.05068377186334605,
+      "improvement": 0.056929317036335636,
+      "improvement_ci": [
+        0.012363347441256556,
+        0.0868449012598036
+      ],
+      "median_baseline": 1.00339915149004,
+      "median_candidate": 0.949353126378975,
+      "metric": "duration_s",
+      "n_baseline": 4,
+      "n_candidate": 4,
+      "notes": [
+        "uncalibrated: no A/A noise floor; threshold = e_min only",
+        "absence of evidence is not evidence of equivalence",
+        "fdr: benjamini-hochberg"
+      ],
+      "p_adjusted": 0.05714285714285714,
+      "p_value": 0.05714285714285714,
+      "ratio": 0.9461370631709155,
+      "role": "guard",
+      "threshold": 0.02,
+      "verdict": "no-detectable-difference"
+    }
+  ],
+  "created_at": "2026-11-27T13:10:41.423101Z",
+  "decision_rule": "Per arm vs baseline and metric: Mann-Whitney U (two-sided, alpha; BH-adjusted if fdr=bh) and a BCa bootstrap CI of the ratio of medians. 'improvement'/'regression' only if significant and the whole CI lies beyond max(e_min, 2*noise_floor), where noise_floor is the |A/A effect point estimate| of the referenced calibration. Non-significant results are 'no-detectable-difference' (not equivalence) unless a pre-registered equivalence margin contains the whole CI.",
+  "excluded": [],
+  "fingerprint_differences": {},
+  "harness_version": "0.1.0",
+  "id": "ana-c4c51b7d07a44fac70390ef6e9205f6f2a1773031f92433d9b5328ef2f0aa47d",
+  "measurement_kind": "simulated",
+  "purpose": "confirmatory",
+  "result_ids": [
+    "res-707fa5e70aab9cd2b4f7f3e66f1a3b63fde46902f100c5847910228bb6b5f5b2",
+    "res-b99cc6b7a231d6a37b8b2982381202a1c44a3453e1d8630cfe47c682fc338ce5",
+    "res-d161b3e5159801bcf332fa7a0cf2e549d9a9556fa2bc324b0f320435c5921388",
+    "res-657cacccabd2ae6f4d6e23589e26bef0395b28860714fdb28be0a6dc5a7b5a3d",
+    "res-1614211587b1e25cabd1bf4b20b26f1dbc5fed4d1c6be3303a34f2cb7a3391cd",
+    "res-7b3d96f72cc2d277125a205e2e68772c397e5d2948ba847b3c488a5fb4ba5187",
+    "res-6ba801b5a26f9ce14e689db595d24f8d989e5c681a34a5cc3d7bc91b9500c2a4",
+    "res-0bcb64de5f65218eab423fa95ca86366b16e4cd158eda877cc474588dec22e0b"
+  ],
+  "schema": "ailx.analysis/v0",
+  "warnings": [
+    "SIMULATED DATA: this analysis validates the harness; it is not a hardware measurement",
+    "no A/A calibration referenced: decisions use e_min only"
+  ]
+}

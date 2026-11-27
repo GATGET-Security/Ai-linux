@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: MIT
+schema = "ailx.profile/v0"
+name = "baseline"
+description = "Stock distribution defaults. AI Linux changes nothing; reference arm for every measurement (ADR-0006)."
+settings = []

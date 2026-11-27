@@ -1,0 +1,39 @@
+{
+  "title": "Profile comparison: stock vs 'inference' profile (experimental settings) \u2014 GPU decode",
+  "purpose": "confirmatory",
+  "hypothesis_ids": [
+    "H-K-05"
+  ],
+  "workload": "llama-bench-gpu.json",
+  "arms": [
+    {
+      "id": "stock",
+      "description": "no AI Linux profile (baseline)"
+    },
+    {
+      "id": "inference",
+      "description": "AI Linux 'inference' profile incl. experimental settings, applied transactionally per run and rolled back afterwards",
+      "profile": {
+        "name": "inference",
+        "include_experimental": true
+      }
+    }
+  ],
+  "baseline_arm": "stock",
+  "design": {
+    "blocks": 10,
+    "runs_per_block": 1,
+    "seed": 301
+  },
+  "primary_metric": "tg_tokens_per_s",
+  "guard_metrics": [
+    "pp_tokens_per_s",
+    "gpu_energy_j",
+    "cpu_energy_j"
+  ],
+  "e_min": 0.02,
+  "alpha": 0.05,
+  "fdr": "bh",
+  "equivalence_margin": null,
+  "bootstrap_resamples": 10000
+}

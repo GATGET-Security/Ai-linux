@@ -1,0 +1,78 @@
+{
+  "accelerator_state": [],
+  "cpufreq": {
+    "amd_pstate_status": null,
+    "boost": null,
+    "driver": "amd-pstate-epp",
+    "epp": "balance_performance",
+    "governor": "powersave",
+    "x3d_mode": "frequency"
+  },
+  "drivers": {
+    "amdgpu": null,
+    "nvidia": "580.00",
+    "nvidia_proc": "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  580.00"
+  },
+  "firmware": {
+    "bios_date": null,
+    "bios_vendor": null,
+    "bios_version": null,
+    "board": null,
+    "microcode": "0xa601209"
+  },
+  "hardware_profile_id": "hwp-d46694712fd6477da4becc44827fc9f4815ed58342a089fa153812e95b957518",
+  "harness": {
+    "git_sha": "bbf269316d824d7b61d8b3dc2b2d2591f0d48e57",
+    "python": "3.13.18",
+    "version": "0.1.0"
+  },
+  "id": "env-62c7cfed298e054a6c218eea3ac6adfa1f5d6b8d1b4831253e47bcafc1698bf9",
+  "kernel": {
+    "cmdline": "BOOT_IMAGE=/vmlinuz-7.0.0-15-generic root=UUID=x ro quiet splash",
+    "config_sha256": "c6a90b53f0c5d6871590647a01ecdfb328436c20df1b16cc76fb64eb970fa616",
+    "release": "7.0.0-15-generic",
+    "version": "#15-Ubuntu SMP PREEMPT_DYNAMIC"
+  },
+  "memory_policy": {
+    "mglru_enabled": null,
+    "overcommit_memory": null,
+    "swappiness": null,
+    "thp_defrag": "madvise",
+    "thp_enabled": "madvise",
+    "zswap_enabled": null
+  },
+  "models": [],
+  "os": {
+    "id": "ubuntu",
+    "pretty_name": "Ubuntu 26.04 LTS",
+    "version_id": "26.04"
+  },
+  "runtime_bundles": [],
+  "sched": {
+    "ext_ops": null,
+    "ext_state": "disabled",
+    "numa_balancing": null,
+    "preempt": null,
+    "preempt_config": "CONFIG_PREEMPT_LAZY",
+    "sched_cache_config": null,
+    "sched_cache_enabled": null,
+    "sched_ext_available": true
+  },
+  "schema": "ailx.environment-fingerprint/v0",
+  "security": {
+    "iommu_groups": null,
+    "lockdown": "integrity",
+    "mitigations": {
+      "spectre_v2": "Mitigation: Enhanced / Automatic IBRS"
+    },
+    "secure_boot": null
+  },
+  "services": {
+    "tuning_daemons": {}
+  },
+  "unavailable": {
+    "sched.preempt": "debugfs not readable",
+    "sched.sched_cache_enabled": "debugfs not readable or kernel without SCHED_CACHE",
+    "security.secure_boot": "EFI SecureBoot variable not readable (legacy boot or no efivarfs)"
+  }
+}
