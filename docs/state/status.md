@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-11-26 · Phase: **1.1 — Measurement foundation implemented (CPU-only CI); Phase 1.2 hardware run next**
+> Last updated: 2026-11-27 · Phase: **1.3 — Runtime foundation implemented (CPU-tested); Phase 1.2 hardware run deferred (workstation unavailable)**
 
 ## Deliverables of Phase 0
 
@@ -24,6 +24,24 @@
 | **Phase 0.1 review** (source verification, corrections, gaps, ADR assessment) | `docs/research/08-architecture-review.md` | done |
 | **Phase 1.1 executable specification** | `docs/architecture/phase1.1-measurement-foundation.md` | ready (blocked by prerequisites P1–P3) |
 | Register updates after review: 57 hypotheses, 22 risks | `docs/state/` | done |
+
+## Phase 1.3 outcome
+
+- `ailx` CLI (status, hardware, resources, doctor, knobs, profile, confirm,
+  rollback, history, engine, system) on the shared probe.
+- Profiles experimental and inactive by default; forbidden knobs rejected;
+  conflicting tuning services respected.
+- Transactions: journal-before-write, read-back verification, automatic
+  rollback, dead-man timer, drift detection, crash recovery (tested with a real
+  killed process), single active profile.
+- Privileged helper with independent allow-list (path traversal, symlink
+  escape, value injection and power-limit raising are refused in tests).
+- Engines: real llama.cpp CPU build (282 s, static, 5 targets) and a real pip
+  engine install from PyPI with full RECORD verification; vLLM/CUDA hw-queued.
+- System install/uninstall into isolated roots (sudoers validated by visudo,
+  foreign files protected, modified files kept, purge).
+- Campaign arms with profiles; fingerprints carry the platform state.
+- Validated on hardware: **nothing yet** (VL-1.3-02 … 10 hw-queued).
 
 ## Phase 1.1 outcome
 

@@ -1,6 +1,6 @@
 # Runbook: First Hardware Run (Block 1.2 — HW-0 … HW-2 + E1)
 
-> Status: ready to execute, **not yet executed** · Last updated: 2026-11-26 · Harness: `ailx-bench` 0.1.0 · Test plan: `docs/architecture/hardware-test-plan.md`
+> Status: ready to execute, **not yet executed** · Last updated: 2026-11-27 · Tools: `ailx` + `ailx-bench` 0.1.0 · Test plan: `docs/architecture/hardware-test-plan.md`
 
 Reference platform (maintainer decision): **Ubuntu 26.04 LTS + NVIDIA** on the
 workstation (Ryzen 9 7950X3D, RTX 4090, 64 GB DDR5, PCIe 5.0 NVMe). The
@@ -29,28 +29,29 @@ sudo reboot
 
 git clone -b claude/ai-linux-research-architecture-1bc3lh https://github.com/GATGET-Security/Ai-linux.git
 cd Ai-linux
-python3 -m venv ~/.venvs/ailx && . ~/.venvs/ailx/bin/activate
-pip install -e "python[nvidia,gguf]"
+sudo python3 -m venv /opt/ailx/venv && sudo /opt/ailx/venv/bin/pip install "./python[nvidia,gguf]"
 
-# llama.cpp, pinned to the commit used in CI, CUDA build
-git clone https://github.com/ggml-org/llama.cpp ~/src/llama.cpp
-git -C ~/src/llama.cpp checkout 98cc730cc8f8f798cf83d22c23a072c205b0e510
-cmake -S ~/src/llama.cpp -B ~/src/llama.cpp/build-cuda -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
-cmake --build ~/src/llama.cpp/build-cuda -j16 --target llama-bench llama-perplexity llama-quantize
+# system layer: group ailx, /var/lib/ailx, /opt/ailx/engines, helpers, sudoers drop-in (review the plan first)
+sudo /opt/ailx/venv/bin/ailx system plan --with-sudoers
+sudo /opt/ailx/venv/bin/ailx system install --with-sudoers
+sudo usermod -aG ailx "$USER"        # re-login afterwards
+ailx doctor
 
-# optional: CPU energy via the minimal privileged RAPL helper
-sudo groupadd --system ailx && sudo usermod -aG ailx "$USER"   # re-login afterwards
-sudo install -m 0755 helpers/rapl-collector/ailx_rapl_collector.py /usr/local/libexec/
-sudo install -m 0644 helpers/rapl-collector/ailx-rapl-collector.service /etc/systemd/system/
-sudo systemctl daemon-reload && sudo systemctl enable --now ailx-rapl-collector
+# llama.cpp, pinned commit, CUDA build in an isolated engine directory with build manifest (≈ minutes)
+ailx engine install llama.cpp --variant cuda
+ailx engine verify llama.cpp
+# optional: vLLM 0.34.0 in its own venv (large download)
+ailx engine install vllm --variant cuda
+
+# optional: CPU energy via the RAPL collector (installed by 'ailx system install', not enabled)
+sudo systemctl enable --now ailx-rapl-collector
 ```
 
 Environment for all following steps:
 
 ```bash
-. ~/.venvs/ailx/bin/activate
 export AILX_STORE=~/ailx-store
-export AILX_LLAMA_BENCH=~/src/llama.cpp/build-cuda/bin/llama-bench
+eval "$(ailx engine env)"               # AILX_LLAMA_BENCH etc. (hardware workloads use engine:llama.cpp/… directly)
 export AILX_MODEL=/path/to/model.gguf   # operator's choice; note licence, precision, sha256
 ```
 
@@ -107,10 +108,18 @@ ailx-bench store verify
 Read the verdicts literally: `no-detectable-difference` is **not**
 "equivalent"; `equivalent-within-margin` requires the pre-registered 5% margin.
 
+## 5b. Profile comparison (system layer, experimental settings)
+
+```bash
+ailx profile plan inference --include-experimental        # what would change on this machine
+ailx-bench campaign all workloads/hw/campaign-profile-inference.json --calibration <CALIBRATION ID> --report profile.md
+ailx status                                               # must show: profile none (rolled back after every run)
+```
+
 ## 6. Optional: quality-gate reference for the chosen model
 
 ```bash
-P=~/src/llama.cpp/build-cuda/bin/llama-perplexity
+P=$AILX_LLAMA_PERPLEXITY
 ailx-bench quality reference --binary $P --model $AILX_MODEL --corpus /path/to/eval-corpus.txt --out-dir ~/ailx-kld-ref --ctx 512 --chunks 64
 ailx-bench quality evaluate  --binary $P --candidate /path/to/quantized-variant.gguf --reference ~/ailx-kld-ref/reference.json
 ```

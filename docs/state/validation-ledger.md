@@ -1,6 +1,6 @@
 # Validation Ledger (deferred validation)
 
-> Status: active · Last updated: 2026-11-26 · Policy: ADR-0010 (accepted)
+> Status: active · Last updated: 2026-11-27 · Policy: ADR-0010 (accepted)
 
 States: `authored → built → unit-tested → hw-queued → hw-validated | hw-failed`.
 Rows record the harness version and A/A calibration ID once hardware runs exist
@@ -17,3 +17,14 @@ fingerprint changes.
 | VL-1.1-06 | E1 GPU power limit 70% vs default | H-S-01 | Workstation | hw-queued | — | 0.1.0 | Runbook §5 |
 | VL-1.1-07 | Proxmox VM CPU type `host` exposes AVX-512; A/A on the VM | H-H-09 | Proxmox server | hw-queued | — | 0.1.0 | Runbook §7 |
 | VL-1.1-08 | Statistics, campaigns, store, reports, KLD gate | — | CI (CPU) | unit-tested | CI run on the PR | 0.1.0 | Simulated data and random-weight test model only |
+| VL-1.3-01 | Profile transactions (plan, journal, verify, rollback, dead-man, drift, crash recovery) | — | Cloud host (live THP/swappiness) + fake roots | unit-tested | CI run on the PR | 0.1.0 | Live apply/rollback/watchdog executed on the Ubuntu 24.04 cloud container (kernel 6.18); not the reference host |
+| VL-1.3-02 | Privileged helper via real `sudo -n` with the installed sudoers drop-in | — | Workstation (Ubuntu 26.04) | hw-queued | — | 0.1.0 | Tested without sudo (helper process + test root) |
+| VL-1.3-03 | cpufreq EPP/governor and X3D-mode knobs on real Zen 4 sysfs | H-K-09 | Workstation | hw-queued | — | 0.1.0 | Cloud host exposes no cpufreq/X3D interfaces; fake sysfs only |
+| VL-1.3-04 | NVIDIA power-limit knob (read default, reduce, restore) | H-S-01 | Workstation | hw-queued | — | 0.1.0 | Fake nvidia-smi only |
+| VL-1.3-05 | `ailx resources` live VRAM via NVML | — | Workstation | hw-queued | — | 0.1.0 | No GPU in CI |
+| VL-1.3-06 | llama.cpp engine: CPU variant build, manifest, verify, tamper detection | — | Cloud host | unit-tested | — | 0.1.0 | Real 282 s build at commit 98cc730 (static, 5 targets) |
+| VL-1.3-07 | llama.cpp engine: CUDA variant build and smoke test | — | Workstation | hw-queued | — | 0.1.0 | Needs CUDA toolkit + GPU |
+| VL-1.3-08 | vLLM 0.34.0 engine install (CUDA) and `vllm --version` smoke | — | Workstation | hw-queued | — | 0.1.0 | pip engine mechanism tested with a stand-in package (six 1.17.0) from PyPI |
+| VL-1.3-09 | System install/uninstall on the real host (group, sudoers, symlinks) | — | Workstation / Proxmox VM | hw-queued | — | 0.1.0 | Tested into isolated roots only |
+| VL-1.3-10 | Profile comparison campaign (stock vs inference, experimental) | H-K-05 | Workstation | hw-queued | — | 0.1.0 | Template `workloads/hw/campaign-profile-inference.json`; mechanism tested with simulated workload on a fake root |
+

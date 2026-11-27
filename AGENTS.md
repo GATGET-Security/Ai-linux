@@ -16,9 +16,12 @@ existing open-source components.
 
 ## 2. Current phase
 
-**Phase 1 — Measure.** Phase 1.1 (measurement foundation, `python/`) is
-implemented and unit-tested; Phase 1.2 (first hardware run) is next. No
-distribution image, no tuning/knob application yet (that is Phase 2).
+**Phase 1 — Measure.** Phase 1.1 (measurement foundation, `ailx-bench`) and
+Phase 1.3 (runtime foundation, `ailx`: inventory, doctor, profiles,
+transactions, engines, install) are implemented and CPU-tested; Phase 1.2
+(first hardware run) is deferred until the workstation is available. No
+distribution image. Profile settings stay experimental and inactive by default
+until hardware-validated; no automatic tuning yet (Phase 2).
 Read `docs/CURRENT.md` for the live state before doing anything else.
 
 ## 3. Non-negotiable principles (see ADR-0004)
@@ -82,8 +85,8 @@ docs/state/          status, roadmap, risks, open questions, hypotheses
 docs/adr/            architecture decision records (NNNN-title.md)
 docs/runbooks/       operator runbooks (hardware runs)
 schemas/             canonical JSON Schemas (language-neutral contracts) + fixtures
-python/              ailx-bench measurement harness (MIT)
-helpers/             small privileged helpers (MIT, stdlib only)
+python/              `ailx` system layer + `ailx-bench` measurement harness (MIT)
+helpers/             small privileged helpers (MIT, stdlib only): apply-helper, rapl-collector
 workloads/           workload manifests and campaign specs
 tools/               development tools (e.g. random-weight test model)
 ```

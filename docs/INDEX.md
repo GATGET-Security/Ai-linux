@@ -1,6 +1,6 @@
 # Documentation Index
 
-> Last updated: 2026-11-26 (Phase 1.1) · Start with [`../AGENTS.md`](../AGENTS.md) and [`CURRENT.md`](CURRENT.md)
+> Last updated: 2026-11-27 (Phase 1.3) · Start with [`../AGENTS.md`](../AGENTS.md) and [`CURRENT.md`](CURRENT.md)
 
 Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 **cold** = read on demand and cite by ID.
@@ -23,6 +23,7 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 | [`architecture/hardware-test-plan.md`](architecture/hardware-test-plan.md) | First tests: Ryzen 9 7950X3D + RTX 4090, i5-11500 Proxmox server |
 | [`architecture/image-and-delivery.md`](architecture/image-and-delivery.md) | Layer-first delivery, base-distro bake-off, image/update/rollback, build pipeline |
 | [`architecture/community-and-licensing.md`](architecture/community-and-licensing.md) | License set, governance, contribution and community strategy |
+| [`architecture/runtime-foundation.md`](architecture/runtime-foundation.md) | `ailx` system layer: profiles, transactions, privilege model, engines, install concept |
 | [`architecture/phase1.1-measurement-foundation.md`](architecture/phase1.1-measurement-foundation.md) | **Executable specification of the next block** (schemas, WPs, acceptance criteria) |
 
 ## State and planning (warm)
@@ -44,6 +45,7 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 | [`../python/README.md`](../python/README.md) | `ailx-bench` package |
 | [`../schemas/README.md`](../schemas/README.md) | Canonical schemas and conformance corpus |
 | [`../helpers/rapl-collector/README.md`](../helpers/rapl-collector/README.md) | RAPL helper, threat model |
+| [`../helpers/apply-helper/README.md`](../helpers/apply-helper/README.md) | Privileged apply helper, allow-list |
 | [`../LICENSING.md`](../LICENSING.md) | Licence split (ADR-0009) |
 
 ## Decisions (warm)
@@ -61,6 +63,7 @@ Context tiers (ADR-0002): **hot** = always read, **warm** = read per task,
 | [0008](adr/0008-self-optimizer-safety-tiers.md) | Self-optimizer safety tiers and adoption rules | Accepted |
 | [0009](adr/0009-licensing-and-contribution-model.md) | Licensing set and contribution model | Accepted as amended (MIT / GPL-2.0-only) |
 | [0010](adr/0010-build-heavy-deferred-validation.md) | Build-heavy / deferred-validation strategy | Accepted |
+| [0011](adr/0011-system-layer-privilege-and-transactions.md) | System layer: unprivileged planner, privileged helper, journaled transactions | Proposed |
 
 ## Research (cold)
 

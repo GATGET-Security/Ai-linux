@@ -46,6 +46,15 @@ gantt
 | **1.2 Calibration + baseline** — runbook: `docs/runbooks/first-hardware-run.md` | HW-0, HW-1, HW-2 of the test plan; Proxmox controller setup | Baseline Report v1 with result IDs; A/A false-positive rate within target; noise floors per workload |
 | **1.3 First experiments** | E1 (GPU power limit), E2 (MoE offload + CCD placement), E4 (model loading); E9 (quality-gate design) in parallel | Hypotheses H-S-01, H-H-01, H-H-06, H-K-09, H-S-06, H-S-04/05 updated with result IDs |
 
+## Phase 1.3 — Runtime foundation (✅ implemented 2026-11-27, CPU-tested)
+
+`ailx` CLI: status / hardware / resources / doctor / knobs; declarative
+profiles (experimental by default); journaled transactions with rollback,
+dead-man timer, drift and crash recovery; privileged apply helper; engine
+management (llama.cpp, vLLM) with build manifests; system install/uninstall;
+profile arms in campaigns. Spec: `docs/architecture/runtime-foundation.md`.
+Phase 1.2 (hardware run) is deferred until the workstation is available.
+
 ## Phase 2 — Tune as a layer → MVP "ailx 0.1" (≈ 3–4 months)
 
 | Area | Content |

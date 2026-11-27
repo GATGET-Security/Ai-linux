@@ -4,11 +4,12 @@
 local AI workloads** — LLMs, image/video/audio generation, embeddings,
 autonomous agents, training and fine-tuning.
 
-> **Status: Phase 1.1 — Measurement foundation implemented.** The benchmark
-> harness `ailx-bench` (Python, `python/`) exists and is tested in CPU-only CI;
-> **nothing has been measured on the reference hardware yet**. There is no
-> distribution image. Next: the first hardware run
-> ([runbook](docs/runbooks/first-hardware-run.md)).
+> **Status: Phase 1.3 — Runtime foundation implemented.** The system-layer CLI
+> `ailx` (inventory, diagnosis, transactional profiles, engine management,
+> install) and the benchmark harness `ailx-bench` exist and are tested on CPU;
+> **nothing has been measured on the reference hardware yet**, and all profile
+> settings are experimental and off by default. There is no distribution
+> image. Next: the first hardware run ([runbook](docs/runbooks/first-hardware-run.md)).
 
 ## Why
 
@@ -80,10 +81,14 @@ pull requests against the documents: corrections with better sources, new
 evidence, counter-evidence, and hardware you could benchmark on in Phase 1.
 Agents and humans follow the same rules: see [AGENTS.md](AGENTS.md).
 
-## Quick start (harness)
+## Quick start
 
 ```bash
 cd python && pip install -e ".[dev]"
+ailx doctor                            # diagnosis with remedies
+ailx status && ailx resources          # system-layer state, live CPU/RAM/GPU/VRAM
+ailx profile plan inference --include-experimental   # what an (unvalidated) profile would change
+ailx engine install llama.cpp --variant cpu          # pinned, isolated build with manifest
 ailx-bench probe                       # hardware profile + fingerprint
 ailx-bench campaign all ../workloads/campaigns/synthetic-aa.json --report aa.md   # simulated self-test
 ```
