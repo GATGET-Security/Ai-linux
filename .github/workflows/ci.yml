@@ -52,6 +52,7 @@ jobs:
       AILX_ENGINES_DIR: ${{ github.workspace }}/engines
       AILX_STATE_DIR: ${{ github.workspace }}/ailx-state
       ENGINE_TARGETS: llama-bench,llama-perplexity,llama-quantize,llama-server
+      ENGINE_TARGETS_KEY: llama-bench_llama-perplexity_llama-quantize_llama-server  # cache keys must not contain commas
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -64,7 +65,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: engines
-          key: ailx-engine-llama.cpp-cpu-${{ env.LLAMA_CPP_COMMIT }}-${{ env.ENGINE_TARGETS }}-${{ hashFiles('python/src/ailx/system/data/engines.json') }}
+          key: ailx-engine-llama.cpp-cpu-${{ env.LLAMA_CPP_COMMIT }}-${{ env.ENGINE_TARGETS_KEY }}-${{ hashFiles('python/src/ailx/system/data/engines.json') }}
       - name: ailx engine install llama.cpp (pinned, CPU, isolated, with build manifest)
         if: steps.cache.outputs.cache-hit != 'true'
         run: ailx engine install llama.cpp --variant cpu --jobs 4 --targets "$ENGINE_TARGETS"
